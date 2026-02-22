@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>SeBa WebAssembly Runner</title>
+  <title>SeBa online</title>
   <script src='https://cdn.plot.ly/plotly-3.3.0.min.js'></script>
   <style>
     body {
@@ -12,14 +12,23 @@
 
     label {
       display: inline-block;
-      width: 80px;
     }
 
-    #stdout-container {
-      margin-top: 10px;
+    /* Hide the stepper controls in the number input fields */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+    }
+    /* Using `textfield` does not work in Safari, but is the solution for Firefox */
+    input[type="number"] {
+	appearance: textfield;
+	width: 80px;
+	text-align: right;
     }
 
-    #stdout {
+    #program-log output {
+	display: block;
       font-family: monospace;
       white-space: pre-wrap;
       border: 1px solid #ccc;
@@ -31,14 +40,30 @@
       background: #f9f9f9;
     }
 
-    #table-container {
-      margin-top: 20px;
-    }
-
     table {
       border-collapse: collapse;
       width: 100%;
       max-width: 600px;
+    }
+    .tooltip {
+	position: relative;
+	display: inline-block;
+    }
+    .tooltiptext {
+	visibility: hidden; /* Hidden by default */
+	width: 130px;
+	background-color: black;
+	color: #ffffff;
+	text-align: center;
+	padding: 5px 0;
+	border-radius: 6px;
+	position: absolute;
+	z-index: 1; /* Ensure tooltip is displayed above content */
+    }
+
+    /* Show the tooltip text on hover */
+    .tooltip:hover .tooltiptext {
+	visibility: visible;
     }
 
     th, td {
@@ -62,80 +87,141 @@
       font-size: 0.9em;
       color: #555;
     }
+
+    nav select {
+	text-align: right;
+	float: right;
+    }
+    
   </style>
 </head>
 <body>
-  <h1>SeBa WebAssembly Runner</h1>
+  <h1 data-i8n="seba-main-title">SeBa online</h1>
+  <nav>
+    <select name="lang" id="lang-switch" onchange="switchLang(this.value);">
+      <option value="nl" selected>NL</option>
+      <option value="en">En</option>
+    </select>
+  </nav>
 
-  <div>
-    <label for="m1">Massa eerste ster</label>
-    <input id="m1" type="text" value="2">
-  </div>
-  <div>
-    <label for="m2">Massa tweede ster</label>
-    <input id="m2" type="text" value="1">
-  </div>
-  <div>
-    <label for="e">Eccentriciteit</label>
-    <input id="e" type="text" value="0.2">
-  </div>
-  <div>
-    <label for="a">Baanscheiding</label>
-    <input id="a" type="text" value="200">
-    <p>Afstand tussen sterren in eenheden van zonneradius</p>
-  </div>
-  <div>
-    <label for="T">Tijd</label>
-    <input id="T" type="text" value="13500">
-    <p>Tijd in miljoenen jaren (megajaar)</p>
-  </div>
-  <div>
-    <label for="z">Metalliciteit</label>
-    <input id="z" type="text" value="0.001">
-    <p>Metaalgehalte van de sterren</p>
-  </div>
+  <section id="controls">
+    <form id="user-input">
+      <template id="control-template">
+	<div id="template-slider">
+	  <input type="range" id="template-range" step="0.01" data-input="template-input" oninput="updateFromSlider(this)">
+	  <input type="number" id="template-input" min="0.01" max="100" value="1" step="any" data-prec="2" data-range="template-range" onblur="clampValue(this);" oninput="updateFromInput(this);">
+	  <div class="tooltip" id="template-tooltip">ⓘ <span class="tooltiptext" data-i8n="template-tooltip">something here</span></div>
+	  <p><label for="template-input" data-i8n="template-label"><span data-i8n="template-name"></spam>(<span id="template-min-value"></span> &ndash; <span id="template-max-value"></span>)</label></p>
+	</div>
+      </template>
+    </form>
   <div style="margin-top: 10px;">
-    <button id="run-button" disabled>Run</button>
-    <span id="status">Loading WebAssembly...</span>
+    <button id="run-button" disabled data-i8n="start">Start</button>
+    <span id="status"></span>
   </div>
 
-  <div id="stdout-container">
-    <h2>Log</h2>
-    <div id="stdout"></div>
-  </div>
+  <section id="program-section">
+    <details id="program-log">
+      <summary data-i8n="program-log">Program log</summary>
+      <output></output>
+    </details>
+  </section>
 
-  <div id="graph"></div>
-  <div id="table-container">
+  <section id="graph"></section>
+
+  <section id="data-section">
     <h2>Output data</h2>
-    <table id="output-table">
+    <table id="data-table">
       <thead>
         <tr>
-          <th>Time</th>
-          <th>Stellar mass</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Rows will be inserted here -->
       </tbody>
     </table>
   </div>
 
-  <!--
-    Define Module BEFORE loading SeBa.js so Emscripten uses these hooks.
-    SeBa.js must be in the same directory as this HTML.
-  -->
-  <script>
-    const stdoutElem = document.getElementById('stdout');
-    const tableBody = document.querySelector('#output-table tbody');
-    const runButton = document.getElementById('run-button');
-    const statusElem = document.getElementById('status');
+<script>
+  const FALLBACK_LANG = "en";
+  // all data fields output by SeBa in `seba.data`
+  const DATACOLS = ['binid', 'bintype', 'transfertype', 'time',
+		    'sep', 'ecc', 'id1', 'type1', 'mass1',
+		    'radius1', 'efftemp1', 'coremass1',
+		    'id2', 'type2', 'mass2',
+		    'radius2', 'efftemp2', 'coremass2'];
+  // data columns only of interest
+  const USERDATACOLS = [
+      'transfertype', 'time', 'sep', 'ecc',
+      'id1', 'type1', 'mass1', 'radius1', 'efftemp1', 'coremass1',
+      'id2', 'type2', 'mass2', 'radius2', 'efftemp2', 'coremass2'
+  ];
 
-    // Collect output lines in memory as well
-    const stdoutLines = [];
-    const stderrLines = [];
+  const CONTROLS = [
+      {name: "mass1", min: 0.01, max: 100, value: 1, step: 0.01, prec: 2, log: true},
+      {name: "mass2", min: 0.01, max: 100, value: 1, step: 0.01, prec: 2, log: true},
+      {name: "ecc", min: 1e-5, max: 0.999, value: 0.2, step: 0.0001, prec: 4, log: true},
+      {name: "sep", min: 1, max: 1e4, value: 200, step: 0.01, prec: 1, log: true},
+      {name: "time", min: 1, max: 1e7, value: 13500, step: 0.1, prec: 0, log: true},
+      {name: "metal", min: 1e-5, max: 1e-1, value: 1e-3, step: 0.0001, prec: 5, log: true}
+  ];
+
+  // Supported languages with a translation file
+  const LANGUAGES = ["en", "nl"];
+
+  const stdoutElem = $q('#program-log output');
+  const runButton = $id('run-button');
+  const statusElem = $id('status');
+
+  // Collect output lines in memory as well
+  const stdoutLines = [];
+  const stderrLines = [];
+
+  function $id(idspec) {
+      return document.getElementById(idspec);
+  }
+
+  function $q(selector) {
+      return document.querySelector(selector);
+  }
+
+  function $qa(selector) {
+      return document.querySelectorAll(selector);
+  }
+
+  function $create(element) {
+      return document.createElement(element);
+  }
+
+
+  var Module;  // global variable for the WASM module
+  var translations = {};
+
+  function updateTableHeader() {
+      const lang = document.documentElement.lang;
+      const translation = translations[lang];
+      let ths = [];
+      for (const col of USERDATACOLS) {
+	  key = `${col}-field`;
+	  const th = $create('th');
+	  let name = "";
+	  if (key in translation) {
+	      name = translation[key];
+	  } else { // Fall back to the default language
+	      name = translations[FALLBACK_LANG][key];
+	  }
+	  if (!name) {  // Fall back to the base column identifier
+	      name = col;
+	  }
+	  th.textContent = name;
+	  ths.push(th);
+      }
+      var row = $q('#data-table thead tr');
+      row.replaceChildren(...ths);
+  }
+
 
     // Helper to append a line to the stdout display
-    function appendOutput(text, isError) {
+    function appendOutput(text) {
       // const prefix = isError ? '[stderr] ' : '';
       // const line = prefix + text;
       stdoutLines.push(text);
@@ -144,28 +230,167 @@
       stdoutElem.scrollTop = stdoutElem.scrollHeight;
     }
 
-    // Emscripten Module configuration object
-    var Module = {
-      print: function(text) {          // stdout
-        appendOutput(text, false);
-      },
-      printErr: function(text) {       // stderr
-        appendOutput(text, true);
-      },
-      onRuntimeInitialized: function() {
-        // Enable the Run button once WASM is ready
-        statusElem.textContent = 'Ready.';
-        runButton.disabled = false;
+    function setupModule() {
+	// Emscripten Module configuration object
+	Module = {
+	    print: function(text) {
+		appendOutput(text);
+	    },
+	    printErr: function(text) {
+		appendOutput(text);
+	    },
+	    onRuntimeInitialized: function() {
+		// Enable the Run button once WASM is ready
+		$id('run-button').disabled = false;
+	    }
+	};
+    }
+
+    function createControls() {
+        const template = $q("#control-template");
+        for (const control of CONTROLS) {
+	    const clone = document.importNode(template.content, true);
+	    const name = control["name"];
+
+	    let div = clone.querySelector("div");
+	    div.id = `${name}-control`;
+	    let tooltip = div.querySelector("div");
+	    tooltip.id = `${name}-tooltip`;
+	    let tooltiptext = tooltip.querySelector("span");
+	    tooltiptext.dataset.i8n = `${name}-tooltip`;
+
+	    let label = clone.querySelector("label");
+	    label.name = name;
+	    label.htmlFor = `${name}-input`;
+	    label.dataset.i8n = `${name}-label`;
+	    label.innerHTML = `<span data-i8n="${name}-name"></span> (<span id="${name}-min-value"></span> &ndash; <span id="${name}-max-value"></span>)</label>`;
+	    let input = clone.querySelector("input[type=number]");
+	    input.id = `${name}-input`;
+	    input.min = control["min"];
+	    input.max = control["max"];
+	    input.value = control["value"];
+	    //input.step = control["step"];
+	    input.dataset.prec = control["prec"];
+	    input.dataset.range = name;
+
+	    let slider = clone.querySelector("input[type=range]");
+	    slider.id = `${name}-range`;
+	    slider.min = Math.log10(control["min"]);
+	    slider.max = Math.log10(control["max"]);
+	    slider.value = Math.log10(control["value"]);
+	    slider.dataset.input = name;
+
+	    const form = $q("#controls form");
+	    form.appendChild(clone);
+	}
+    }
+
+    function updateMinMax() {
+	for (const label of $qa("form#user-input label")) {
+	    const name = label.name;
+	    let values = [];
+	    for (const control of CONTROLS) {
+		if (control["name"] == name) {
+		    values = {"min": control["min"], "max": control["max"]};
+		    break;
+		}
+	    }
+	    if (!values) {
+		console.warn("Missing min-max values for ", name);
+		return ;
+	    }
+	    let minval = label.querySelector(`#${name}-min-value`);
+	    minval.textContent = values["min"];
+	    let maxval = label.querySelector(`#${name}-max-value`);
+	    maxval.textContent = values["max"];
+	}
+
+    }
+
+    async function loadTranslations() {
+	for (lang of LANGUAGES) {
+	    try {
+		const response = await fetch(`${lang}.json`);
+
+		if (!response.ok) {
+		    throw new Error(`Could not fetch ${lang}.json`);
+		}
+
+		translations[lang] = await response.json();
+
+	    } catch (error) {
+		console.error("Translation error:", error);
+	    }
+	}
+    }
+
+    function switchLang(lang) {
+	document.documentElement.lang = lang;
+	if (!lang in translations) {
+	    lang = FALLBACK_LANG;
+	}
+	const translation = translations[lang];
+	const elements = document.querySelectorAll("[data-i8n]");
+	for (const element of elements) {
+	    const key = element.dataset.i8n;
+	    if (key in translation) {
+		value = translation[key];
+		element.textContent = value;
+	    }
+	}
+	updateTableHeader();
+
+    }
+
+
+    function updateFromSlider(slider) {
+	const id = `${slider.dataset.input}-input`;
+	let input = $id(id);
+	const actualValue = Math.pow(10, parseFloat(slider.value));
+	input.value = actualValue.toFixed(parseInt(input.dataset.prec));
+  }
+
+  // Convert actual value back to slider position (log10)
+  function updateFromInput(input) {
+      const id = `${input.dataset.range}-range`;
+      const slider = $id(id);
+      const min = parseFloat(input.min);
+      const max = parseFloat(input.max);
+      value = parseFloat(input.value);
+      if (isNaN(value)) {
+	  return ;
       }
-    };
 
-    // Load the generated JS glue code (SeBa.js)
-  </script>
-  <script src="SeBa.js"></script>
+      if (value < min) {
+	  value = min;
+      } else if (value > max) {
+	  value = max;
+      }
+      if (value > 0) {
+	slider.value = Math.log10(value);
+    }
+  }
 
-  <script>
+      function clampValue(input) {
+	  const min = parseFloat(input.min);
+	  const max = parseFloat(input.max);
+	  let value = parseFloat(input.value);
+
+	  if (isNaN(value)) {
+	      input.value = min; // Default to min if input is empty/invalid
+	      updateFromInput(input);
+	      return;
+	  }
+
+	  if (value < min) {
+	      input.value = min;
+	  } else if (value > max) {
+	      input.value = max;
+	  }
+      }
+
     // Run button handler
-    runButton.addEventListener('click', function() {
+    function run() {
       if (!Module || !Module.callMain) {
         alert('Module not initialized yet.');
         return;
@@ -174,23 +399,21 @@
       // Clear previous output
       stdoutLines.length = 0;
       stdoutElem.textContent = '';
-      tableBody.innerHTML = '';
-      statusElem.textContent = 'Running...';
-      runButton.disabled = true;
+      $id('run-button').disabled = true;
 
 	const args = [
 	    '-M',
-	    document.getElementById('m1').value.trim(),
+	    document.getElementById('mass1-input').value.trim(),
 	    '-m',
-	    document.getElementById('m2').value.trim(),
+	    document.getElementById('mass2-input').value.trim(),
 	    '-e',
-	    document.getElementById('e').value.trim(),
+	    document.getElementById('ecc-input').value.trim(),
 	    '-a',
-	    document.getElementById('a').value.trim(),
+	    document.getElementById('sep-input').value.trim(),
 	    '-T',
-	    document.getElementById('T').value.trim(),
+	    document.getElementById('time-input').value.trim(),
 	    '-z',
-	    document.getElementById('z').value.trim()
+	    document.getElementById('metal-input').value.trim()
 	];
 
 
@@ -209,23 +432,23 @@
       }
 
       // After main returns, try to read output.txt
-      try {
+	try {
           const text = Module.FS.readFile('SeBa.data', { encoding: 'utf8' });
-	  data = readData(text);
-        populateTableFromOutput(text);
+	    data = readData(text);
+	  populateTable(data);
+	  plotResults(data);
       } catch (e) {
         appendOutput('Could not read SeBa.data: ' + e, true);
       }
 
-	plotResults(data);
+      $id('run-button').disabled = false;
+    };
 
-      statusElem.textContent = 'Done.';
-      runButton.disabled = false;
-    });
+    $id('run-button').addEventListener('click', run)
+
 
     function readData(fileContent) {
-	var data = Array.from({length: 18}, _ => []);
-
+	var array = Array.from({length: 18}, _ => []);
 	const lines = fileContent.split(/\r?\n/);
 	for (const line of lines) {
 	    const trimmed = line.trim();
@@ -234,56 +457,34 @@
 	    }
 	    const cols = trimmed.split(/\s+/);
 	    for (const i in cols) {
-		data[i].push(parseFloat(cols[i]));
+		array[i].push(parseFloat(cols[i]));
 	    }
-
 	}
+
+	var data = {};
+	DATACOLS.forEach((name, index) => {
+	    data[name] = array[index];
+	});
 	return data;
     }
 
-    // Parse output.txt lines, extract columns 1, 2, and 5 into the table
-    function populateTableFromOutput(fileContent) {
-      const lines = fileContent.split(/\r?\n/);
-
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;                 // skip empty lines
-        if (trimmed.startsWith('#')) continue;  // skip comment lines (optional)
-
-        // Split on whitespace (spaces/tabs)
-        const cols = trimmed.split(/\s+/);
-        if (cols.length < 5) continue;          // need at least 5 columns
-
-        const c1 = cols[4];
-        const c2 = cols[9];
-
-        const tr = document.createElement('tr');
-
-        const td1 = document.createElement('td');
-        td1.textContent = c1;
-        tr.appendChild(td1);
-
-        const td2 = document.createElement('td');
-        td2.textContent = c2;
-        tr.appendChild(td2);
-
-        tableBody.appendChild(tr);
-      }
+    function populateTable(data) {
+	let trs = [];
+	for (var rownr = 0; rownr < data[USERDATACOLS[0]].length; ++rownr) {
+	    let tr = $create('tr');
+	    for (const col of USERDATACOLS) {
+		const td = $create('td');
+		td.textContent = data[col][rownr];
+		tr.appendChild(td);
+	    }
+	    trs.push(tr);
+	}
+	let tbody = $q('#data-table tbody');
+	tbody.replaceChildren(...trs);
     }
 
     function plotResults(data) {
-	var trace1 = {
-	    x: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-	    y: [8, 7, 6, 5, 4, 3, 2, 1, 0],
-	    type: 'scatter'
-	};
-
-	var trace2 = {
-	    x: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-	    y: [0, 1, 2, 3, 4, 5, 6, 7, 8],
-	    type: 'scatter'
-	};
-
+				    
 	var plottingData = {
 	    x: data[3],
 	    y: data[9],
@@ -300,9 +501,27 @@
 		autorange: true
 	    }
 	};
-	console.log(plottingData);
+	//console.log(plottingData);
 	Plotly.newPlot('graph', [plottingData], layout);
     }
+
+
+    function init() {
+	loadTranslations().then(() => {
+	    switchLang("nl");
+	    updateMinMax();
+
+	});
+	createControls();
+	setupModule();
+    }
+
+    init();
+
+
   </script>
+    <!-- Load the generated JS glue code (SeBa.js) after the setup -->
+  <script src="SeBa.js"></script>
+
 </body>
 </html>

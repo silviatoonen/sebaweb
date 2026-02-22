@@ -1,0 +1,41 @@
+{
+    "seba-main-title": "SeBa online",
+    "lang-toggle": "English",
+    "mass1-name": "Massa ster 1",
+    "mass2-name": "Massa ster 2",
+    "ecc-name": "Eccentriciteit",
+    "sep-name": "Afstand",
+    "time-name": "Tijds interval",
+    "metal-name": "Metalliciteit",
+
+    "mass1-tooltip": "Massa van de primaire ster; dit moet groter of gelijk zijn aan die van de secondaire ster.",
+    "mass2-tooltip": "Massa van de secondaire ster; dit moet kleiner of gelijk zijn aan die van de primaire ster.",
+    "ecc-tooltip": "Eccentriciteit van de elliptische baan. 0 is a cirkel, 0.99 is bijna een rechte lijn.",
+    "sep-tooltip": "Afstand tussen de twee sterren, in eenheden van de straal van de zon.",
+
+    "time-tooltip": "Tijdsinterval van de simulatie, in eenheden van megajaren (miljoenen jaren).",
+    "metal-tooltip": "Metalliticiteit is de fractie van atomen met atoomnummers groter dan dat van helium, vergeleken met de totale stermassa (die voornamelijk bestaat uit waterstof en helium).",
+    
+    "program-log": "Programma log",
+
+
+    "binid-field": "binary identiteits getal",
+	"bintype-field": "type binary",
+	"transfertype-field": "massa overdrachtstype",
+	"time-field": "tijd",
+    "sep-field": "afstand in zonnestralene",
+	"ecc-field": "eccentriciteit",
+    "id1-field": "ster 1 identiteits nummer",
+	"type1-field": "ster 1 type",
+    "mass1-field": "stermassa 1 in zonsmassa's",
+    "radius1-field": "ster 1 straal in zonnestralen",
+    "efftemp1-field": "logarithme van de effectieve temperature van ster 1",
+    "coremass1-field": "kernmassa van ster 1 in zonsmassa's",
+    "id2-field": "ster 2 identiteits nummer",
+	"type2-field": "ster 2 type",
+    "mass2-field": "stermassa 2 in zonsmassa's",
+    "radius2-field": "ster 2 straal in zonnestralen",
+    "efftemp2-field": "logarithme van de effectieve temperature van ster 2",
+    "coremass2-field": "kernmassa van ster 2 in zonsmassa's"
+    
+}
