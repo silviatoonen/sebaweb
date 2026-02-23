@@ -146,7 +146,7 @@
   <section>
     <details id="program-log">
       <summary data-i8n="program-log">Program log</summary>
-      <output>Demo output</output>
+      <output></output>
     </details>
   </section>
 
@@ -376,7 +376,7 @@
       }
   }
 
-  function updateAxisChoices() {
+  function updatePlotOptions() {
       for (const name of ['x', 'y']) {
 	  let axis = $id(`${name}-axis`);
 	  let selection = axis.value;
@@ -395,7 +395,6 @@
 	  }
 	  axis.replaceChildren(...options);
       }
-
   }
 
   function switchLang(lang) {
@@ -413,7 +412,7 @@
 	  }
       }
       updateTableHeader();
-      updateAxisChoices();
+      updatePlotOptions();
 
   }
 
@@ -466,7 +465,7 @@
 
   // function to translate strings in JavaScript code
   function _t(key) {
-      document.documentElement.lang = lang;
+      let lang = document.documentElement.lang;
       if (!lang in translations) {
 	  lang = FALLBACK_LANG;
       }
