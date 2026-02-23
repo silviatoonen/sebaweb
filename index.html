@@ -98,13 +98,13 @@
     h2 {
 	margin-bottom: 1em;
 	padding: 0.5em 0.5ex;
-	color: blue;
+	color: brown;
 	font-size: x-large;
     }
     details summary {
 	margin-bottom: 1em;
 	padding: 0.5em 0.5ex;
-	color: blue;
+	color: brown;
 	font-size: x-large;
     }
 
@@ -121,10 +121,9 @@
     <h1 data-i8n="seba-main-title">SeBa online</h1>
 
     <section>
-      <details id="program-log">
+      <details id="introduction" open>
 	<summary data-i8n="introduction"></summary>
 	<p data-i8n="introduction-text"></p>
-	<output></output>
       </details>
     </section>
 
@@ -147,7 +146,7 @@
   <section>
     <details id="program-log">
       <summary data-i8n="program-log">Program log</summary>
-      <output></output>
+      <output>Demo output</output>
     </details>
   </section>
 
@@ -190,14 +189,14 @@
 
 <script>
   const FALLBACK_LANG = "en";
+
   // all data fields output by SeBa in `seba.data`
   const DATAFIELDS = ['binid', 'bintype', 'transfertype', 'time',
-		    'sep', 'ecc', 'id1', 'type1', 'mass1',
-		    'radius1', 'efftemp1', 'coremass1',
-		    'id2', 'type2', 'mass2',
+		      'sep', 'ecc', 'id1', 'type1', 'mass1',
+		      'radius1', 'efftemp1', 'coremass1',
+		      'id2', 'type2', 'mass2',
 		      'radius2', 'efftemp2', 'coremass2'];
-  const arr = new Array([1,2,3]);
-  console.log(typeof(DATAFIELDS), typeof([1,2,3]), typeof(arr));
+
   // data columns only of interest
   const USERDATAFIELDS = [
       'transfertype', 'time', 'sep', 'ecc',
@@ -271,109 +270,111 @@
   }
 
 
-    // Helper to append a line to the stdout display
-    function appendOutput(text) {
-      // const prefix = isError ? '[stderr] ' : '';
+  // Helper to append a line to the stdout display
+  function appendOutput(text) {
+      // const prefix = isError ? '[stderr] ' : '';  // use when separating stdout and stderr
       // const line = prefix + text;
+
       stdoutLines.push(text);
       stdoutElem.textContent = stdoutLines.join('\n');
+
       // Scroll to bottom
-      stdoutElem.scrollTop = stdoutElem.scrollHeight;
-    }
+      // stdoutElem.scrollTop = stdoutElem.scrollHeight;
+  }
 
-    function setupModule() {
-	// Emscripten Module configuration object
-	Module = {
-	    print: function(text) {
-		appendOutput(text);
-	    },
-	    printErr: function(text) {
-		appendOutput(text);
-	    },
-	    onRuntimeInitialized: function() {
-		// Enable the Run button once WASM is ready
-		$id('start-button').disabled = false;
-	    }
-	};
-    }
+  function setupModule() {
+      // Emscripten Module configuration object
+      Module = {
+	  print: function(text) {
+	      appendOutput(text);
+	  },
+	  printErr: function(text) {
+	      appendOutput(text);
+	  },
+	  onRuntimeInitialized: function() {
+	      // Enable the Run button once WASM is ready
+	      $id('start-button').disabled = false;
+	  }
+      };
+  }
 
-    function createControls() {
-        const template = $q("#control-template");
-        for (const control of CONTROLS) {
-	    const clone = document.importNode(template.content, true);
-	    const name = control["name"];
+  function createControls() {
+      const template = $q("#control-template");
+      for (const control of CONTROLS) {
+	  const clone = document.importNode(template.content, true);
+	  const name = control["name"];
 
-	    let div = clone.querySelector("div");
-	    div.id = `${name}-control`;
-	    let tooltip = div.querySelector("div");
-	    tooltip.id = `${name}-tooltip`;
-	    let tooltiptext = tooltip.querySelector("span");
-	    tooltiptext.dataset.i8n = `${name}-tooltip`;
+	  let div = clone.querySelector("div");
+	  div.id = `${name}-control`;
+	  let tooltip = div.querySelector("div");
+	  tooltip.id = `${name}-tooltip`;
+	  let tooltiptext = tooltip.querySelector("span");
+	  tooltiptext.dataset.i8n = `${name}-tooltip`;
 
-	    let label = clone.querySelector("label");
-	    label.name = name;
-	    label.htmlFor = `${name}-input`;
-	    label.dataset.i8n = `${name}-label`;
-	    label.innerHTML = `<span data-i8n="${name}-name"></span> (<span id="${name}-min-value"></span> &ndash; <span id="${name}-max-value"></span>)</label>`;
-	    let input = clone.querySelector("input[type=number]");
-	    input.id = `${name}-input`;
-	    input.min = control["min"];
-	    input.max = control["max"];
-	    input.value = control["value"];
-	    //input.step = control["step"];
-	    input.dataset.prec = control["prec"];
-	    input.dataset.range = name;
+	  let label = clone.querySelector("label");
+	  label.name = name;
+	  label.htmlFor = `${name}-input`;
+	  label.dataset.i8n = `${name}-label`;
+	  label.innerHTML = `<span data-i8n="${name}-name"></span> (<span id="${name}-min-value"></span> &ndash; <span id="${name}-max-value"></span>)</label>`;
+	  let input = clone.querySelector("input[type=number]");
+	  input.id = `${name}-input`;
+	  input.min = control["min"];
+	  input.max = control["max"];
+	  input.value = control["value"];
+	  //input.step = control["step"];
+	  input.dataset.prec = control["prec"];
+	  input.dataset.range = name;
 
-	    let slider = clone.querySelector("input[type=range]");
-	    slider.id = `${name}-range`;
-	    slider.min = Math.log10(control["min"]);
-	    slider.max = Math.log10(control["max"]);
-	    slider.value = Math.log10(control["value"]);
-	    slider.dataset.input = name;
+	  let slider = clone.querySelector("input[type=range]");
+	  slider.id = `${name}-range`;
+	  slider.min = Math.log10(control["min"]);
+	  slider.max = Math.log10(control["max"]);
+	  slider.value = Math.log10(control["value"]);
+	  slider.dataset.input = name;
 
-	    const form = $q("#controls form");
-	    form.appendChild(clone);
-	}
-    }
+	  const form = $q("#controls form");
+	  form.appendChild(clone);
+      }
+  }
 
-    function updateMinMax() {
-	for (const label of $qa("form#user-input label")) {
-	    const name = label.name;
-	    let values = [];
-	    for (const control of CONTROLS) {
-		if (control["name"] == name) {
-		    values = {"min": control["min"], "max": control["max"]};
-		    break;
-		}
-	    }
-	    if (!values) {
-		console.warn("Missing min-max values for ", name);
-		return ;
-	    }
-	    let minval = label.querySelector(`#${name}-min-value`);
-	    minval.textContent = values["min"];
-	    let maxval = label.querySelector(`#${name}-max-value`);
-	    maxval.textContent = values["max"];
-	}
+  function updateMinMax() {
+      for (const label of $qa("form#user-input label")) {
+	  const name = label.name;
+	  let values = [];
+	  for (const control of CONTROLS) {
+	      if (control["name"] == name) {
+		  values = {"min": control["min"], "max": control["max"]};
+		  break;
+	      }
+	  }
+	  if (!values) {
+	      console.warn("Missing min-max values for ", name);
+	      return ;
+	  }
+	  let minval = label.querySelector(`#${name}-min-value`);
+	  minval.textContent = values["min"];
+	  let maxval = label.querySelector(`#${name}-max-value`);
+	  maxval.textContent = values["max"];
+      }
 
-    }
+  }
 
-    async function loadTranslations() {
-	for (lang of LANGUAGES) {
-	    try {
-		const response = await fetch(`${lang}.json`);
+  async function loadTranslations() {
+      for (lang of LANGUAGES) {
+	  try {
+	      const response = await fetch(`${lang}.json`);
 
-		if (!response.ok) {
-		    throw new Error(`Could not fetch ${lang}.json`);
-		}
+	      if (!response.ok) {
+		  throw new Error(`Could not fetch ${lang}.json`);
+	      }
 
-		translations[lang] = await response.json();
+	      translations[lang] = await response.json();
 
-	    } catch (error) {
-		console.error("Translation error:", error);
-	    }
-	}
-    }
+	  } catch (error) {
+	      console.error("Translation error:", error);
+	  }
+      }
+  }
 
   function updateAxisChoices() {
       for (const name of ['x', 'y']) {
@@ -418,10 +419,10 @@
 
 
   function updateFromSlider(slider) {
-	const id = `${slider.dataset.input}-input`;
-	let input = $id(id);
-	const actualValue = Math.pow(10, parseFloat(slider.value));
-	input.value = actualValue.toFixed(parseInt(input.dataset.prec));
+      const id = `${slider.dataset.input}-input`;
+      let input = $id(id);
+      const actualValue = Math.pow(10, parseFloat(slider.value));
+      input.value = actualValue.toFixed(parseInt(input.dataset.prec));
   }
 
   // Convert actual value back to slider position (log10)
@@ -441,52 +442,52 @@
 	  value = max;
       }
       if (value > 0) {
-	slider.value = Math.log10(value);
-    }
+	  slider.value = Math.log10(value);
+      }
   }
 
-      function clampValue(input) {
-	  const min = parseFloat(input.min);
-	  const max = parseFloat(input.max);
-	  let value = parseFloat(input.value);
+  function clampValue(input) {
+      const min = parseFloat(input.min);
+      const max = parseFloat(input.max);
+      let value = parseFloat(input.value);
 
-	  if (isNaN(value)) {
-	      input.value = min; // Default to min if input is empty/invalid
-	      updateFromInput(input);
-	      return;
-	  }
-
-	  if (value < min) {
-	      input.value = min;
-	  } else if (value > max) {
-	      input.value = max;
-	  }
+      if (isNaN(value)) {
+	  input.value = min; // Default to min if input is empty/invalid
+	  updateFromInput(input);
+	  return;
       }
 
-      // function to translate strings in JavaScript code
-      function _t(key) {
-      	  document.documentElement.lang = lang;
-	  if (!lang in translations) {
-	      lang = FALLBACK_LANG;
-	  }
-	  const translation = translations[lang];
-	  let string = "";
-	  if (!key in translation) {
-              string = translations[FALLBACK_LANG][key];
-	  } else {
-	      string = translation[key];
-	  }
-	  if (!string) {
-	      string = "";
-	  }
-	  return string;
+      if (value < min) {
+	  input.value = min;
+      } else if (value > max) {
+	  input.value = max;
       }
+  }
+
+  // function to translate strings in JavaScript code
+  function _t(key) {
+      document.documentElement.lang = lang;
+      if (!lang in translations) {
+	  lang = FALLBACK_LANG;
+      }
+      const translation = translations[lang];
+      let string = "";
+      if (!key in translation) {
+          string = translations[FALLBACK_LANG][key];
+      } else {
+	  string = translation[key];
+      }
+      if (!string) {
+	  string = "";
+      }
+      return string;
+  }
 
   // Run SeBa
   function run() {
       if (!Module || !Module.callMain) {
-        alert('Module not initialized yet.');
-        return;
+          alert('Module not initialized yet.');
+          return;
       }
 
       // Clear previous output
@@ -495,112 +496,110 @@
       // Update status
       $id('start-button').disabled = true;
       $id('status').textContent = _t("running...");
-	const args = [
-	    '-M',
-	    document.getElementById('mass1-input').value.trim(),
-	    '-m',
-	    document.getElementById('mass2-input').value.trim(),
-	    '-e',
-	    document.getElementById('ecc-input').value.trim(),
-	    '-a',
-	    document.getElementById('sep-input').value.trim(),
-	    '-T',
-	    document.getElementById('time-input').value.trim(),
-	    '-z',
-	    document.getElementById('metal-input').value.trim()
-	];
+      const args = [
+	  '-M',
+	  document.getElementById('mass1-input').value.trim(),
+	  '-m',
+	  document.getElementById('mass2-input').value.trim(),
+	  '-e',
+	  document.getElementById('ecc-input').value.trim(),
+	  '-a',
+	  document.getElementById('sep-input').value.trim(),
+	  '-T',
+	  document.getElementById('time-input').value.trim(),
+	  '-z',
+	  document.getElementById('metal-input').value.trim()
+      ];
 
 
       // Optional: remove previous SeBa.data if it exists
       try {
-        Module.FS.unlink('SeBa.data');
+          Module.FS.unlink('SeBa.data');
       } catch (e) {
-        // Ignore if file did not exist
+          // Ignore if file did not exist
       }
 
       // Call main(argc, argv) via callMain
       try {
-        Module.callMain(args);
+          Module.callMain(args);
       } catch (e) {
-        appendOutput('Exception: ' + e, true);
+          appendOutput('Exception: ' + e, true);
       }
 
       // After main returns, try to read output.txt
-	try {
+      try {
           const text = Module.FS.readFile('SeBa.data', { encoding: 'utf8' });
-	    data = readData(text);
-	    populateTable(data);
+	  data = readData(text);
+	  populateTable(data);
 
-	    // Enable graph options
-	    $id('graph-style').disabled = false;
-	    $id('x-axis').disabled = false;
-	    $id('y-axis').disabled = false;
-	    // Add event listeners with *current* data
-	    $id('graph-style').addEventListener('change', () => plot(data));
-	    $id('x-axis').addEventListener('change', () => plot(data));
-	    $id('y-axis').addEventListener('change', () => plot(data));
-	    plot(data);
+	  // Enable graph options
+	  $id('graph-style').disabled = false;
+	  $id('x-axis').disabled = false;
+	  $id('y-axis').disabled = false;
+	  // Add event listeners with *current* data
+	  $id('graph-style').addEventListener('change', () => plot(data));
+	  $id('x-axis').addEventListener('change', () => plot(data));
+	  $id('y-axis').addEventListener('change', () => plot(data));
+	  plot(data);
       } catch (e) {
-        appendOutput('Could not read SeBa.data: ' + e, true);
+          appendOutput('Could not read SeBa.data: ' + e, true);
       }
 
       // Reset the start button and status field
-	$id('start-button').disabled = false;
-	$id('status').textContent = '';
-    };
+      $id('start-button').disabled = false;
+      $id('status').textContent = '';
+  };
 
-    $id('start-button').addEventListener('click', run)
+  $id('start-button').addEventListener('click', run)
 
 
-    function readData(fileContent) {
-	var array = Array.from({length: 18}, _ => []);
-	const lines = fileContent.split(/\r?\n/);
-	for (const line of lines) {
-	    const trimmed = line.trim();
-	    if (!trimmed) {
-		continue;
-	    }
-	    const cols = trimmed.split(/\s+/);
-	    for (const i in cols) {
-		array[i].push(parseFloat(cols[i]));
-	    }
-	}
+  function readData(fileContent) {
+      var array = Array.from({length: 18}, _ => []);
+      const lines = fileContent.split(/\r?\n/);
+      for (const line of lines) {
+	  const trimmed = line.trim();
+	  if (!trimmed) {
+	      continue;
+	  }
+	  const cols = trimmed.split(/\s+/);
+	  for (const i in cols) {
+	      array[i].push(parseFloat(cols[i]));
+	  }
+      }
 
-	var data = {};
-	DATAFIELDS.forEach((name, index) => {
-	    data[name] = array[index];
-	});
-	return data;
-    }
+      var data = {};
+      DATAFIELDS.forEach((name, index) => {
+	  data[name] = array[index];
+      });
+      return data;
+  }
 
-    function populateTable(data) {
-	let trs = [];
-	for (var rownr = 0; rownr < data[USERDATAFIELDS[0]].length; ++rownr) {
-	    let tr = $create('tr');
-	    for (const col of USERDATAFIELDS) {
-		const td = $create('td');
-		td.textContent = data[col][rownr];
-		tr.appendChild(td);
-	    }
-	    trs.push(tr);
-	}
-	let tbody = $q('#data-table tbody');
-	tbody.replaceChildren(...trs);
-    }
+  function populateTable(data) {
+      let trs = [];
+      for (var rownr = 0; rownr < data[USERDATAFIELDS[0]].length; ++rownr) {
+	  let tr = $create('tr');
+	  for (const col of USERDATAFIELDS) {
+	      const td = $create('td');
+	      td.textContent = data[col][rownr];
+	      tr.appendChild(td);
+	  }
+	  trs.push(tr);
+      }
+      let tbody = $q('#data-table tbody');
+      tbody.replaceChildren(...trs);
+  }
 
   function plot(data) {
       let xaxis = $id('x-axis').value;
       let yaxis = $id('y-axis').value;
-            console.log(xaxis, yaxis);
       if (!xaxis in data) {
 	  xaxis = GRAPHDEFAULTS['x'];
       }
       if (!yaxis in data) {
 	  yaxis = GRAPHDEFAULTS['y'];
       }
-      console.log(xaxis, yaxis);
+
       const graphtype = $id("graph-style").value;
-      console.log(graphtype, graphtype == "linlin");
       let xtype = "log";
       let ytype = "log";
       if (graphtype == "linlin") {
@@ -616,39 +615,38 @@
 	  ytype = "log";
       }
 
-	let plottingData = {
-	    x: data[xaxis],
-	    y: data[yaxis],
-	    type: 'scatter'
-	};
-      console.log("x data = ", plottingData['x']);
-      console.log("y data = ", plottingData['y']);
-	let layout = {
-	    xaxis: {
-		type: xtype,
-		autorange: true
-	    },
-	    yaxis: {
-		type: ytype,
-		autorange: true
-	    }
-	};
-      console.log("layout = ", layout);
-	Plotly.newPlot('graph', [plottingData], layout);
-    }
+      let plottingData = {
+	  x: data[xaxis],
+	  y: data[yaxis],
+	  type: 'scatter'
+      };
+
+      let layout = {
+	  xaxis: {
+	      type: xtype,
+	      autorange: true
+	  },
+	  yaxis: {
+	      type: ytype,
+	      autorange: true
+	  }
+      };
+
+      Plotly.newPlot('graph', [plottingData], layout);
+  }
 
 
-    function init() {
-	loadTranslations().then(() => {
-	    switchLang("nl");
-	    updateMinMax();
+  function init() {
+      loadTranslations().then(() => {
+	  switchLang("nl");
+	  updateMinMax();
 
-	});
-	createControls();
-	setupModule();
-    }
+      });
+      createControls();
+      setupModule();
+  }
 
-    init();
+  init();
 
 
   </script>
