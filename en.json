@@ -36,6 +36,7 @@
     "y-axis": "y-axis",
 
     "header-results": "Results",
+    "download-data": "Download data as CSV file",
 
 	"binid-field": "binary identity number",
 	"bintype-field": "binary type",

@@ -199,7 +199,7 @@
 
   <section id="data-section">
     <h2 data-i8n="header-results">Results</h2>
-
+    <button id="download-data" data-i8n="download-data" disabled onclick="downloadData();">Download data as CSV</button>
     <table id="data-table">
       <thead>
         <tr>
@@ -273,7 +273,8 @@
   }
 
 
-  var translations = {};
+    let translations = {};
+    let data = {};
 
   function updateTableHeader() {
       const lang = document.documentElement.lang;
@@ -536,6 +537,7 @@
       if (!string) {
 	  string = "";
       }
+      console.log(key, string);
       return string;
   }
 
@@ -600,6 +602,7 @@
 	  const text = Module.FS.readFile('SeBa.data', { encoding: 'utf8' });
 	  data = readData(text);
 
+	  $id('download-data').disabled = false;
 	  // Enable graph options
 	  $id('graph-style').disabled = false;
 	  $id('x-axis').disabled = false;
@@ -649,7 +652,7 @@
 	  }
       }
 
-      var data = {};
+      data = {};
       DATAFIELDS.forEach((name, index) => {
 	  data[name] = array[index];
       });
@@ -717,6 +720,32 @@
       Plotly.newPlot('graph', [plottingData], layout);
   }
 
+    function dataToCSV(data) {
+	const keys = Object.keys(data);
+	const header = keys.map(key => _t(`${key}-field`)).join(',');
+	const length = data[keys[0]].length;
+
+	const rows = [];
+	for (let i = 0; i < length; i++) {
+	    const row = keys.map(key => data[key][i] ?? '').join(',');
+	    rows.push(row);
+	}
+
+	return header + '\n' + rows.join('\n');
+    }
+
+    function downloadData() {
+	const csv = dataToCSV(data);
+	const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement('a');
+	link.href = url;
+	link.download = 'SeBadata.csv';
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+	URL.revokeObjectURL(url);
+    };
 
   function init() {
       createControls();

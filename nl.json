@@ -37,6 +37,7 @@
     "y-axis": "y-as",
 
     "header-results": "Resultaten",
+    "download-data": "Download resultaten als CSV bestand",
 
     "binid-field": "binary identiteits getal",
 	"bintype-field": "type binary",
