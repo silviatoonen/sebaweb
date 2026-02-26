@@ -1,97 +1,120 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>SeBa online</title>
-  <link rel="stylesheet" href="base.css">
-  <script src="base.js" type="module" defer></script>
-  <script src='https://cdn.plot.ly/plotly-3.3.0.min.js' defer></script>
-</head>
-<body>
-  <header id="header">
-    <nav id="nav">
-      <select id="lang-switch" name="lang">
-	<option value="nl" selected>🇳🇱 NL</option>
-	<option value="en">🇬🇧 En</option>
-      </select>
-    </nav>
-    <div id="banner">
-      <h1 data-i8n="seba-main-title">SeBa online</h1>
-    </div>
-  </header>
-<main>
-  <section id="introduction">
-      <details open>
-	<summary data-i8n="introduction"></summary>
-	<p data-i8n="introduction-text"></p>
-      </details>
-  </section>
-
-  <section id="controls">
-    <h2>Parameters</h2>
-    <form id="user-input">
-      <template id="control-template">
-	<div id="template-slider" class="control">
-	  <input type="range" id="template-range" step="0.01" data-input="template-input">
-	  <input type="number" id="template-input" min="0.01" max="100" value="1" step="any" data-prec="2" data-range="template-range">
-	  <div class="tooltip" id="template-tooltip">ⓘ <span class="tooltiptext" data-i8n="template-tooltip"></span></div>
-	  <label for="template-input"><span data-i8n="template-name"></span>(<span id="template-min-value"></span> &ndash; <span id="template-max-value"></span>)</label>
-	</div>
-      </template>
-    </form>
-
-    <button id="start-button" disabled data-i8n="start">Start</button>
-    <input type="checkbox" id="direct-update"></input>
-    <label for="direct-update"><span data-i8n="update-directly"></span></label>
-    <div class="tooltip" id="update-directly-tooltip">ⓘ <span class="tooltiptext" data-i8n="update-directly-tooltip"></span></div>
-    <p id="status"></p>
-  </section>
-
-  <section id="graph">
-    <h2 data-i8n="header-graph">Graph</h2>
-    <div id="plotly-graph"></div>
-    <div>
-      <div>
-      <label for="graph-style" data-i8n="graph-style"></label>
-      <select name="style" id="graph-style" disabled>
-	<option value="linlin" data-i8n="graph-linlin"></option>
-	<option value="loglog" selected data-i8n="graph-loglog"></option>
-	<option value="linlog" data-i8n="graph-linlog"></option>
-	<option value="loglin" data-i8n="graph-loglin"></option>
-      </select>
+  <head>
+    <meta charset="UTF-8" />
+    <title>SeBa online</title>
+    <link rel="stylesheet" href="base.css" />
+    <script src="base.js" type="module" defer></script>
+    <script src="https://cdn.plot.ly/plotly-3.3.0.min.js" defer></script>
+  </head>
+  <body>
+    <header id="header">
+      <nav id="nav">
+        <select id="lang-switch" name="lang">
+          <option value="nl" selected>🇳🇱 NL</option>
+          <option value="en">🇬🇧 En</option>
+        </select>
+      </nav>
+      <div id="banner">
+        <h1 data-i8n="seba-main-title">SeBa online</h1>
       </div>
-      <div>
-      <label for="x-axis" data-i8n="x-axis"></label>
-	<select name="xaxis" id="x-axis" disabled></select>
-      </div>
-      <div>
-      <label for="y-axis" data-i8n="y-axis"></label>
-      <select name="yaxis" id="y-axis" disabled></select>
-      </div>
-    </div>
-  </section>
+    </header>
+    <main>
+      <section id="introduction">
+        <details open>
+          <summary data-i8n="introduction"></summary>
+          <p data-i8n="introduction-text"></p>
+        </details>
+      </section>
 
-  <section id="data-section">
-    <h2 data-i8n="header-results">Results</h2>
-    <button id="download-data" data-i8n="download-data" disabled>Download data as CSV</button>
-    <table id="data-table">
-      <thead>
-        <tr>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
-  </div>
-</section>
+      <section id="controls">
+        <h2>Parameters</h2>
+        <form id="user-input">
+          <template id="control-template">
+            <div id="template-slider" class="control">
+              <input
+                type="range"
+                id="template-range"
+                step="0.01"
+                data-input="template-input"
+              />
+              <input
+                type="number"
+                id="template-input"
+                min="0.01"
+                max="100"
+                value="1"
+                step="any"
+                data-prec="2"
+                data-range="template-range"
+              />
+              <div class="tooltip" id="template-tooltip">
+                ⓘ <span class="tooltiptext" data-i8n="template-tooltip"></span>
+              </div>
+              <label for="template-input"
+                ><span data-i8n="template-name"></span>(<span
+                  id="template-min-value"
+                ></span>
+                &ndash; <span id="template-max-value"></span>)</label
+              >
+            </div>
+          </template>
+        </form>
 
-  <section id="program-log">
-    <details>
-      <summary data-i8n="program-log">Program log</summary>
-      <output></output>
-    </details>
-  </section>
-</main>
+        <button id="start-button" disabled data-i8n="start">Start</button>
+        <input type="checkbox" id="direct-update" />
+        <label for="direct-update"
+          ><span data-i8n="update-directly"></span
+        ></label>
+        <div class="tooltip" id="update-directly-tooltip">
+          ⓘ <span class="tooltiptext" data-i8n="update-directly-tooltip"></span>
+        </div>
+        <p id="status"></p>
+      </section>
 
-</body>
+      <section id="graph">
+        <h2 data-i8n="header-graph">Graph</h2>
+        <div id="plotly-graph"></div>
+        <div>
+          <div>
+            <label for="graph-style" data-i8n="graph-style"></label>
+            <select name="style" id="graph-style" disabled>
+              <option value="linlin" data-i8n="graph-linlin"></option>
+              <option value="loglog" selected data-i8n="graph-loglog"></option>
+              <option value="linlog" data-i8n="graph-linlog"></option>
+              <option value="loglin" data-i8n="graph-loglin"></option>
+            </select>
+          </div>
+          <div>
+            <label for="x-axis" data-i8n="x-axis"></label>
+            <select name="xaxis" id="x-axis" disabled></select>
+          </div>
+          <div>
+            <label for="y-axis" data-i8n="y-axis"></label>
+            <select name="yaxis" id="y-axis" disabled></select>
+          </div>
+        </div>
+      </section>
+
+      <section id="data-section">
+        <h2 data-i8n="header-results">Results</h2>
+        <button id="download-data" data-i8n="download-data" disabled>
+          Download data as CSV
+        </button>
+        <table id="data-table">
+          <thead>
+            <tr></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section id="program-log">
+        <details>
+          <summary data-i8n="program-log">Program log</summary>
+          <output></output>
+        </details>
+      </section>
+    </main>
+  </body>
 </html>
