@@ -5,14 +5,19 @@
   <title>SeBa online</title>
   <script src='https://cdn.plot.ly/plotly-3.3.0.min.js'></script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
+
     body {
-	font-family: sans-serif;
+	font-family: "Raleway", Arial, Helvetica, sans-serif;
 	color: #666;
-      margin: 20px;
+	margin: 0;
     }
 
     label {
-      display: inline-block;
+	display: inline-block;
+	margin: 0.5em 0.5ex;
+	font-size: smaller;
+	color: #333;
     }
 
     /* Hide the stepper controls in the number input fields */
@@ -35,20 +40,39 @@
       border: 1px solid #ccc;
       padding: 8px;
       overflow-y: auto;
-      line-height: 1.2em;
-      min-height: calc(1.2em * 20); /* approx. 20 lines visible */
+      line-height: 1.2rem;
+      min-height: calc(1.2rem * 20); /* approx. 20 lines visible */
       max-height: 400px;
       background: #f9f9f9;
     }
 
-    table {
+    #data-table {
       border-collapse: collapse;
       width: 100%;
       max-width: 600px;
     }
+    #data-table, th, td {
+	border-left: none;
+	border-right: none;
+	border-bottom: 1px solid gray;
+      padding: 4px 8px;
+      text-align: left;
+      font-family: monospace;
+    }
+    thead tr {
+	background-color: #eee;
+    }
+    tbody tr:nth-child(odd) {
+        background-color: #ddf;
+    }
+    tbody tr:nth-child(even) {
+        background-color: #eee;
+    }
+
     .tooltip {
 	position: relative;
 	display: inline-block;
+	margin-left: 0.5rem;
     }
     .tooltiptext {
 	visibility: hidden; /* Hidden by default */
@@ -67,35 +91,64 @@
 	visibility: visible;
     }
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 4px 8px;
-      text-align: left;
-      font-family: monospace;
+    input[type=number] {
+	margin: 0.2rem;
+	border-radius: 10px;
+        padding: 3px 5px;
+        border: 2px solid #ccc;
+        width: 50px;
+    }
+    input[type=range] {
+	cursor: pointer;
     }
 
-    th {
-      background: #eee;
-    }
+    button {
+	display: block;
+	padding: 0.3rem 1.3rem;
+	margin: 0.2rem;
+	border-radius: 1rem;
+	border: 3px solid #8af;
+	background: #eee;
+	box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.6);
+	font-size: 0.8rem;
 
+	&:hover:not(:disabled) {
+	    cursor: pointer;
+	    background: #ccc;
+	}
+	&:active:not(:disabled) {
+	    box-shadow: none;
+	}
+	&:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+	}
+
+    }
     #start-button {
-      display: block;
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
+	font-size: 1rem;
     }
 
     #status {
       margin-left: 10px;
-      font-size: 0.9em;
+      font-size: 0.9rem;
       font-style: italic;
       color: #555;
     }
 
+    nav {
+	margin-left: 2rem;
+    }
+
     nav select {
-	text-align: right;
-	float: right;
+	text-align: left;
+	float: left;
+    }
+
+    .control {
+	background-color: #eee;
+	margin: 1em 3ex 1em 1ex;
+	padding: 0.2em 0.5ex;
     }
 
     /* Hide the (drop-down) arrows and style the <select> element as minimally as possible */
@@ -114,68 +167,131 @@
 	}
     }
 
+    h1 {
+	color: #eee;
+	font-size: 60px;
+	font-weight: lighter;
+	font-stretch: 100%;
+    }
+
     h2 {
-	margin-bottom: 1em;
-	padding: 0.5em 0.5ex;
+	margin-bottom: 0rem;
+	padding: 0.5rem;
 	color: brown;
 	font-size: x-large;
+	font-weight: normal;
     }
     details summary {
-	margin-bottom: 1em;
-	padding: 0.5em 0.5ex;
+	margin-bottom: 1rem;
+	padding: 0.5rem;
 	color: brown;
 	font-size: x-large;
     }
 
+#header {
+    grid-area: header;
+    width: 100%;
+    background-image: url('./banner.jpg');
+    background-size: covert;
+    padding: 2ex 0;
+}
+#banner {
+    text-align: center;
+}
+#introduction {
+	grid-area: introduction;
+	    justify-self: start;
+}
+#controls {
+	grid-area: controls;
+	align-self: start;
+	min-width: 300px;
+}
+#graph {
+	grid-area: graph;
+	align-self: end;
+
+	min-width: 700px;
+	overflow-x: auto;
+}
+#data-section {
+    grid-area: data-section;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+#program-log {
+    grid-area: program-log;
+    justify-self: start;
+}
+main {
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-template-areas:
+	"introduction"
+	"controls"
+	"graph"
+	"data-section"
+	"program-log";
+
+	padding-left: 2rem;
+	padding-right: 2rem;
+}
+@media (min-width: 700px) {
+    main {
+    grid-template-columns: 300px 1fr;
+    grid-template-areas:
+	"introduction introduction"
+      "controls graph"
+	"data-section data-section"
+	"program-log program-log";
+  }
+	}
 
   </style>
 </head>
 <body>
-    <nav>
+  <header id="header">
+    <nav id="nav">
       <select id="lang-switch" name="lang" onchange="switchLang(this.value);">
 	<option value="nl" selected>🇳🇱 NL</option>
 	<option value="en">🇬🇧 En</option>
       </select>
-  </nav>
-
-    <h1 data-i8n="seba-main-title">SeBa online</h1>
-
-    <section>
-      <details id="introduction" open>
+    </nav>
+    <div id="banner">
+      <h1 data-i8n="seba-main-title">SeBa online</h1>
+    </div>
+  </header>
+<main>
+  <section id="introduction">
+      <details open>
 	<summary data-i8n="introduction"></summary>
 	<p data-i8n="introduction-text"></p>
       </details>
-    </section>
+  </section>
 
   <section id="controls">
+    <h2>Parameters</h2>
     <form id="user-input">
       <template id="control-template">
-	<div id="template-slider">
-	  <input type="range" id="template-range" step="0.01" data-input="template-input"> <!--  oninput="updateFromSlider(this)" -->
+	<div id="template-slider" class="control">
+	  <input type="range" id="template-range" step="0.01" data-input="template-input">
 	  <input type="number" id="template-input" min="0.01" max="100" value="1" step="any" data-prec="2" data-range="template-range" onblur="clampValue(this);">
-	  <div class="tooltip" id="template-tooltip">ⓘ <span class="tooltiptext" data-i8n="template-tooltip">something here</span></div>
-	  <p><label for="template-input"><span data-i8n="template-name"></span>(<span id="template-min-value"></span> &ndash; <span id="template-max-value"></span>)</label></p>
+	  <div class="tooltip" id="template-tooltip">ⓘ <span class="tooltiptext" data-i8n="template-tooltip"></span></div>
+	  <label for="template-input"><span data-i8n="template-name"></span>(<span id="template-min-value"></span> &ndash; <span id="template-max-value"></span>)</label>
 	</div>
       </template>
     </form>
-  <div>
+
     <button id="start-button" disabled data-i8n="start">Start</button>
     <input type="checkbox" id="direct-update"></input>
     <label for="direct-update"><span data-i8n="update-directly"></span></label>
     <div class="tooltip" id="update-directly-tooltip">ⓘ <span class="tooltiptext" data-i8n="update-directly-tooltip"></span></div>
     <p id="status"></p>
-  </div>
-
-  <section>
-    <details id="program-log">
-      <summary data-i8n="program-log">Program log</summary>
-      <output></output>
-    </details>
   </section>
 
-  <section>
+  <section id="graph">
     <h2 data-i8n="header-graph">Graph</h2>
-    <div id="graph"></div>
+    <div id="plotly-graph"></div>
     <div>
       <div>
       <label for="graph-style" data-i8n="graph-style"></label>
@@ -209,7 +325,15 @@
       </tbody>
     </table>
   </div>
+</section>
 
+  <section id="program-log">
+    <details>
+      <summary data-i8n="program-log">Program log</summary>
+      <output></output>
+    </details>
+  </section>
+</main>
     <!-- Load the generated JS glue code (SeBa.js) after the setup -->
   <script src="seba.js"></script>
 
@@ -706,6 +830,11 @@
 	  type: 'scatter'
       };
 
+      let width = $id('graph').offsetWidth ?? 700;
+      width -= 100;
+
+      console.log('width = ', $id('graph').width, $id('graph').style.width, $id('graph').offsetWidth);
+
       let layout = {
 	  xaxis: {
 	      type: xtype,
@@ -714,10 +843,11 @@
 	  yaxis: {
 	      type: ytype,
 	      autorange: true
-	  }
+	  },
+	  width: width
       };
 
-      Plotly.newPlot('graph', [plottingData], layout);
+      Plotly.newPlot('plotly-graph', [plottingData], layout);
   }
 
     function dataToCSV(data) {

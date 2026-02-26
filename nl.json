@@ -9,7 +9,7 @@
     "mass2-name": "Massa ster 2",
     "ecc-name": "Eccentriciteit",
     "sep-name": "Afstand",
-    "time-name": "Tijds interval",
+    "time-name": "Tijdsinterval",
     "metal-name": "Metalliciteit",
 
     "mass1-tooltip": "Massa van de primaire ster; dit moet groter of gelijk zijn aan die van de secondaire ster.",
