@@ -17,6 +17,7 @@
 	display: inline-block;
 	margin: 0.5em 0.5ex;
 	font-size: smaller;
+	color: #333;
     }
 
     /* Hide the stepper controls in the number input fields */
@@ -145,10 +146,11 @@
     }
 
     .control {
-	background-color: #ddd;
+	background-color: #eee;
 	margin: 1em 3ex 1em 1ex;
 	padding: 0.2em 0.5ex;
     }
+
     /* Hide the (drop-down) arrows and style the <select> element as minimally as possible */
     #lang-switch {
 	font-size: large;  /* <select> doesn't automatically inherit font-size, since it's native to the browser */
@@ -210,10 +212,12 @@
 	align-self: end;
 
 	min-width: 700px;
-	min-width: 600px;
+	overflow-x: auto;
 }
 #data-section {
-  grid-area: data-section;
+    grid-area: data-section;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 #program-log {
     grid-area: program-log;
@@ -242,7 +246,6 @@ main {
 	"program-log program-log";
   }
 	}
-
 
   </style>
 </head>
@@ -827,6 +830,11 @@ main {
 	  type: 'scatter'
       };
 
+      let width = $id('graph').offsetWidth ?? 700;
+      width -= 100;
+
+      console.log('width = ', $id('graph').width, $id('graph').style.width, $id('graph').offsetWidth);
+
       let layout = {
 	  xaxis: {
 	      type: xtype,
@@ -836,7 +844,7 @@ main {
 	      type: ytype,
 	      autorange: true
 	  },
-	  width: 600
+	  width: width
       };
 
       Plotly.newPlot('plotly-graph', [plottingData], layout);
