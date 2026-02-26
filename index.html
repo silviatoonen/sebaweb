@@ -12,7 +12,9 @@
     }
 
     label {
-      display: inline-block;
+	display: inline-block;
+	margin: 0.5em 0.5ex;
+	font-size: smaller;
     }
 
     /* Hide the stepper controls in the number input fields */
@@ -41,14 +43,33 @@
       background: #f9f9f9;
     }
 
-    table {
+    #data-table {
       border-collapse: collapse;
       width: 100%;
       max-width: 600px;
     }
+    #data-table, th, td {
+	border-left: none;
+	border-right: none;
+	border-bottom: 1px solid gray;
+      padding: 4px 8px;
+      text-align: left;
+      font-family: monospace;
+    }
+    thead tr {
+	background-color: #eee;
+    }
+    tbody tr:nth-child(odd) {
+        background-color: #ddf;
+    }
+    tbody tr:nth-child(even) {
+        background-color: #eee;
+    }
+
     .tooltip {
 	position: relative;
 	display: inline-block;
+	margin-left: 0.5em;
     }
     .tooltiptext {
 	visibility: hidden; /* Hidden by default */
@@ -67,15 +88,15 @@
 	visibility: visible;
     }
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 4px 8px;
-      text-align: left;
-      font-family: monospace;
+    input[type=number] {
+	margin: 0.2ex 0.2em;
+	border-radius: 10px;
+        padding: 3px 5px;
+        border: 2px solid #ccc;
+        width: 50px;
     }
-
-    th {
-      background: #eee;
+    input[type=range] {
+	cursor: pointer;
     }
 
     #start-button {
@@ -94,10 +115,15 @@
     }
 
     nav select {
-	text-align: right;
-	float: right;
+	text-align: left;
+	float: left;
     }
 
+    .control {
+	background-color: #ddd;
+	margin: 1em 3ex 1em 1ex;
+	padding: 0.2em 0.5ex;
+    }
     /* Hide the (drop-down) arrows and style the <select> element as minimally as possible */
     #lang-switch {
 	font-size: large;  /* <select> doesn't automatically inherit font-size, since it's native to the browser */
@@ -114,8 +140,13 @@
 	}
     }
 
+    h1 {
+	color: brown;
+	font-size: xx-large;
+    }
+
     h2 {
-	margin-bottom: 1em;
+	margin-bottom: 0em;
 	padding: 0.5em 0.5ex;
 	color: brown;
 	font-size: x-large;
@@ -140,10 +171,13 @@
 }
 #controls {
 	grid-area: controls;
+	align-self: start;
 	min-width: 300px;
 }
 #graph {
 	grid-area: graph;
+	align-self: end;
+
 	min-width: 700px;
 	min-width: 600px;
 }
@@ -166,7 +200,7 @@ main {
 }
 @media (min-width: 700px) {
     main {
-    grid-template-columns: 0.5fr 1fr;
+    grid-template-columns: 300px 1fr;
     grid-template-areas:
 	"introduction introduction"
       "controls graph"
@@ -187,8 +221,8 @@ main {
       </select>
     </nav>
     <div id="banner">
-    <h1 data-i8n="seba-main-title">SeBa online</h1>
-     </div>
+      <h1 data-i8n="seba-main-title">SeBa online</h1>
+    </div>
   </header>
 <main>
   <section id="introduction">
@@ -199,23 +233,23 @@ main {
   </section>
 
   <section id="controls">
+    <h2>Parameters</h2>
     <form id="user-input">
       <template id="control-template">
-	<div id="template-slider">
-	  <input type="range" id="template-range" step="0.01" data-input="template-input"> <!--  oninput="updateFromSlider(this)" -->
+	<div id="template-slider" class="control">
+	  <input type="range" id="template-range" step="0.01" data-input="template-input">
 	  <input type="number" id="template-input" min="0.01" max="100" value="1" step="any" data-prec="2" data-range="template-range" onblur="clampValue(this);">
-	  <div class="tooltip" id="template-tooltip">ⓘ <span class="tooltiptext" data-i8n="template-tooltip">something here</span></div>
-	  <p><label for="template-input"><span data-i8n="template-name"></span>(<span id="template-min-value"></span> &ndash; <span id="template-max-value"></span>)</label></p>
+	  <div class="tooltip" id="template-tooltip">ⓘ <span class="tooltiptext" data-i8n="template-tooltip"></span></div>
+	  <label for="template-input"><span data-i8n="template-name"></span>(<span id="template-min-value"></span> &ndash; <span id="template-max-value"></span>)</label>
 	</div>
       </template>
     </form>
-  <div>
+
     <button id="start-button" disabled data-i8n="start">Start</button>
     <input type="checkbox" id="direct-update"></input>
     <label for="direct-update"><span data-i8n="update-directly"></span></label>
     <div class="tooltip" id="update-directly-tooltip">ⓘ <span class="tooltiptext" data-i8n="update-directly-tooltip"></span></div>
     <p id="status"></p>
-  </div>
   </section>
 
   <section id="graph">
