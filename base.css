@@ -1,0 +1,242 @@
+@import url("https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap");
+
+body {
+    font-family: "Raleway", Arial, Helvetica, sans-serif;
+    color: #666;
+    margin: 0;
+}
+
+label {
+    display: inline-block;
+    margin: 0.5em 0.5ex;
+    font-size: smaller;
+    color: #333;
+}
+
+/* Hide the stepper controls in the number input fields */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+/* Using `textfield` does not work in Safari, but is the solution for Firefox */
+input[type="number"] {
+    appearance: textfield;
+    width: 80px;
+    text-align: right;
+}
+
+#program-log output {
+    display: block;
+    font-family: monospace;
+    white-space: pre-wrap;
+    border: 1px solid #ccc;
+    padding: 8px;
+    overflow-y: auto;
+    line-height: 1.2rem;
+    min-height: calc(1.2rem * 20); /* approx. 20 lines visible */
+    max-height: 400px;
+    background: #f9f9f9;
+}
+
+#data-table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 600px;
+}
+#data-table,
+th,
+td {
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid gray;
+    padding: 4px 8px;
+    text-align: left;
+    font-family: monospace;
+}
+thead tr {
+    background-color: #eee;
+}
+tbody tr:nth-child(odd) {
+    background-color: #ddf;
+}
+tbody tr:nth-child(even) {
+    background-color: #eee;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    margin-left: 0.5rem;
+}
+.tooltiptext {
+    visibility: hidden; /* Hidden by default */
+    width: 260px;
+    background-color: #cccccc;
+    color: #333333;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+    position: absolute;
+    z-index: 1; /* Ensure tooltip is displayed above content */
+}
+
+/* Show the tooltip text on hover */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+input[type="number"] {
+    margin: 0.2rem;
+    border-radius: 10px;
+    padding: 3px 5px;
+    border: 2px solid #ccc;
+    width: 50px;
+}
+input[type="range"] {
+    cursor: pointer;
+}
+
+button {
+    display: block;
+    padding: 0.3rem 1.3rem;
+    margin: 0.2rem;
+    border-radius: 1rem;
+    border: 3px solid #8af;
+    background: #eee;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.6);
+    font-size: 0.8rem;
+
+    &:hover:not(:disabled) {
+        cursor: pointer;
+        background: #ccc;
+    }
+    &:active:not(:disabled) {
+        box-shadow: none;
+    }
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+#start-button {
+    font-size: 1rem;
+}
+
+#status {
+    margin-left: 10px;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: #555;
+}
+
+nav {
+    margin-left: 2rem;
+}
+
+nav select {
+    text-align: left;
+    float: left;
+}
+
+.control {
+    background-color: #eee;
+    margin: 1em 3ex 1em 1ex;
+    padding: 0.2em 0.5ex;
+}
+
+/* Hide the (drop-down) arrows and style the <select> element as minimally as possible */
+#lang-switch {
+    font-size: large; /* <select> doesn't automatically inherit font-size, since it's native to the browser */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: none;
+    border: none;
+    padding: 0;
+
+    &::-ms-expand {
+        /* For IE and EdgeHTML: hide dropdown arrow */
+        display: none;
+    }
+}
+
+h1 {
+    color: #eee;
+    font-size: 60px;
+    font-weight: lighter;
+    font-stretch: 100%;
+}
+
+h2 {
+    margin-bottom: 0rem;
+    padding: 0.5rem;
+    color: brown;
+    font-size: x-large;
+    font-weight: normal;
+}
+details summary {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    color: brown;
+    font-size: x-large;
+}
+
+#header {
+    grid-area: header;
+    width: 100%;
+    background-image: url("./banner.jpg");
+    background-size: covert;
+    padding: 2ex 0;
+}
+#banner {
+    text-align: center;
+}
+#introduction {
+    grid-area: introduction;
+    justify-self: start;
+}
+#controls {
+    grid-area: controls;
+    align-self: start;
+    min-width: 300px;
+}
+#graph {
+    grid-area: graph;
+    align-self: end;
+
+    min-width: 700px;
+    overflow-x: auto;
+}
+#data-section {
+    grid-area: data-section;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+#program-log {
+    grid-area: program-log;
+    justify-self: start;
+}
+main {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+        "introduction"
+        "controls"
+        "graph"
+        "data-section"
+        "program-log";
+
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+@media (min-width: 700px) {
+    main {
+        grid-template-columns: 300px 1fr;
+        grid-template-areas:
+            "introduction introduction"
+            "controls graph"
+            "data-section data-section"
+            "program-log program-log";
+    }
+}
