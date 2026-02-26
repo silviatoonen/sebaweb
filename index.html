@@ -127,25 +127,76 @@
 	font-size: x-large;
     }
 
+#header {
+    grid-area: header;
+    width: 100%;
+	}
+	#banner {
+	text-align: center;
+	}
+#introduction {
+	grid-area: introduction;
+	    justify-self: start;
+}
+#controls {
+	grid-area: controls;
+	min-width: 300px;
+}
+#graph {
+	grid-area: graph;
+	min-width: 700px;
+	min-width: 600px;
+}
+#data-section {
+  grid-area: data-section;
+}
+#program-log {
+    grid-area: program-log;
+    justify-self: start;
+}
+main {
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-template-areas:
+	"introduction"
+	"controls"
+	"graph"
+	"data-section"
+	"program-log";
+}
+@media (min-width: 700px) {
+    main {
+    grid-template-columns: 0.5fr 1fr;
+    grid-template-areas:
+	"introduction introduction"
+      "controls graph"
+	"data-section data-section"
+	"program-log program-log";
+  }
+	}
+
 
   </style>
 </head>
 <body>
-    <nav>
+  <header id="header">
+    <nav id="nav">
       <select id="lang-switch" name="lang" onchange="switchLang(this.value);">
 	<option value="nl" selected>🇳🇱 NL</option>
 	<option value="en">🇬🇧 En</option>
       </select>
-  </nav>
-
+    </nav>
+    <div id="banner">
     <h1 data-i8n="seba-main-title">SeBa online</h1>
-
-    <section>
-      <details id="introduction" open>
+     </div>
+  </header>
+<main>
+  <section id="introduction">
+      <details open>
 	<summary data-i8n="introduction"></summary>
 	<p data-i8n="introduction-text"></p>
       </details>
-    </section>
+  </section>
 
   <section id="controls">
     <form id="user-input">
@@ -165,17 +216,11 @@
     <div class="tooltip" id="update-directly-tooltip">ⓘ <span class="tooltiptext" data-i8n="update-directly-tooltip"></span></div>
     <p id="status"></p>
   </div>
-
-  <section>
-    <details id="program-log">
-      <summary data-i8n="program-log">Program log</summary>
-      <output></output>
-    </details>
   </section>
 
-  <section>
+  <section id="graph">
     <h2 data-i8n="header-graph">Graph</h2>
-    <div id="graph"></div>
+    <div id="plotly-graph"></div>
     <div>
       <div>
       <label for="graph-style" data-i8n="graph-style"></label>
@@ -209,7 +254,15 @@
       </tbody>
     </table>
   </div>
+</section>
 
+  <section id="program-log">
+    <details>
+      <summary data-i8n="program-log">Program log</summary>
+      <output></output>
+    </details>
+  </section>
+</main>
     <!-- Load the generated JS glue code (SeBa.js) after the setup -->
   <script src="seba.js"></script>
 
@@ -714,10 +767,11 @@
 	  yaxis: {
 	      type: ytype,
 	      autorange: true
-	  }
+	  },
+	  width: 600
       };
 
-      Plotly.newPlot('graph', [plottingData], layout);
+      Plotly.newPlot('plotly-graph', [plottingData], layout);
   }
 
     function dataToCSV(data) {
