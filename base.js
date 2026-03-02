@@ -161,35 +161,10 @@ function updateTableHeader() {
 }
 
 // Helper to append a line to the stdout display
+// stderr is combined with stdout
 function appendOutput(text) {
-    // const prefix = isError ? '[stderr] ' : '';  // use when separating stdout and stderr
-    // const line = prefix + text;
-
     stdoutLines.push(text);
     stdoutElem.textContent = stdoutLines.join("\n");
-
-    // Scroll to bottom
-    // stdoutElem.scrollTop = stdoutElem.scrollHeight;
-}
-
-function setupModule() {
-    // Emscripten Module configuration object
-    Module = {
-        print: function (text) {
-            appendOutput(text);
-        },
-        printErr: function (text) {
-            appendOutput(text);
-        },
-        //onRuntimeInitialized: function() {
-        //    // Enable the Run button once WASM is ready
-        //    $id('start-button').disabled = false;
-        //}
-    };
-}
-
-function runUpdate() {
-    console.warn("RUNNING");
 }
 
 function createControls() {
@@ -211,7 +186,10 @@ function createControls() {
         label.name = name;
         label.htmlFor = `${name}-input`;
         //label.dataset.i8n = `${name}-label`;
-        label.innerHTML = `<span data-i8n="${name}-name"></span> (<span id="${name}-min-value"></span> &ndash; <span id="${name}-max-value"></span>)</label>`;
+        label.innerHTML = `
+            <span data-i8n="${name}-name"></span>
+            (<span id="${name}-min-value"></span> &ndash;
+             <span id="${name}-max-value"></span>)</label>`;
         let input = clone.querySelector("input[type=number]");
         input.id = `${name}-input`;
         input.min = control["min"];
@@ -412,9 +390,6 @@ async function runSeba() {
     const Module = await createSeBa({
         print: (text) => appendOutput(text),
         printErr: (text) => appendOutput(text),
-        //printErr: function(text) {
-        //    appendOutput(text);
-        //},
     });
 
     if (!Module || !Module.callMain) {
@@ -425,8 +400,7 @@ async function runSeba() {
     // Clear previous output
     stdoutLines.length = 0;
     stdoutElem.textContent = "";
-    // Update status
-    $id("status").textContent = _t("running...");
+
     const args = [
         "-M",
         document.getElementById("mass1-input").value.trim(),
@@ -495,8 +469,6 @@ async function runSeba() {
     $id("start-button").disabled = false;
     $id("status").textContent = "";
 }
-
-$id("start-button").addEventListener("click", runSeba);
 
 function readData(fileContent) {
     var array = Array.from({ length: 18 }, (_) => []);
@@ -614,6 +586,7 @@ function downloadData() {
 function init() {
     createControls();
     updateMinMax();
+    $id("start-button").addEventListener("click", runSeba);
     $id("download-data").addEventListener("click", downloadData);
     $id("lang-switch").addEventListener("change", (event) =>
         switchLang(event.target.value),
@@ -624,6 +597,6 @@ function init() {
     });
 }
 
-// Set up some essentials after the page has loaded,
+// `init()` sets up some essentials after the page has loaded,
 // such as event listeners
 init();
