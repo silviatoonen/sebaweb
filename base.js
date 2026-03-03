@@ -53,9 +53,8 @@ const USERDATAFIELDS = [
     "lum2",
 ];
 
-const CONTROLS = [
-    {
-        name: "mass1",
+const CONTROLS = {
+    mass1: {
         min: 0.01,
         max: 100,
         value: 2,
@@ -63,8 +62,7 @@ const CONTROLS = [
         prec: 2,
         log: true,
     },
-    {
-        name: "mass2",
+    mass2: {
         min: 0.01,
         max: 100,
         value: 1,
@@ -72,17 +70,15 @@ const CONTROLS = [
         prec: 2,
         log: true,
     },
-    {
-        name: "ecc",
-        min: 1e-5,
+    ecc: {
+        min: 0,
         max: 1,
         value: 0.2,
         step: 0.0001,
         prec: 4,
-        log: true,
+        log: false,
     },
-    {
-        name: "sep",
+    sep: {
         min: 1,
         max: 1e4,
         value: 200,
@@ -90,8 +86,7 @@ const CONTROLS = [
         prec: 1,
         log: true,
     },
-    {
-        name: "time",
+    time: {
         min: 1,
         max: 1e7,
         value: 13500,
@@ -99,16 +94,17 @@ const CONTROLS = [
         prec: 0,
         log: true,
     },
-    {
-        name: "metal",
+    metal: {
         min: 1e-4,
         max: 0.03,
-        value: 1e-3,
+        value: 2e-2,
         step: 0.0001,
         prec: 5,
         log: true,
     },
-];
+};
+const CONTROL_ORDER = ["mass1", "mass2", "ecc", "sep", "time", "metal"];
+
 const GRAPHDEFAULTS = {
     x: "time",
     y: "sep",
@@ -178,9 +174,9 @@ function createControls() {
     let updateTimeout = null; // Keeps track of input waiting time
 
     const template = $q("#control-template");
-    for (const control of CONTROLS) {
+    for (const name of CONTROL_ORDER) {
+        const control = CONTROLS[name];
         const clone = document.importNode(template.content, true);
-        const name = control["name"];
 
         let div = clone.querySelector("div");
         div.id = `${name}-control`;
@@ -208,9 +204,15 @@ function createControls() {
 
         let slider = clone.querySelector("input[type=range]");
         slider.id = `${name}-range`;
-        slider.min = Math.log10(control["min"]);
-        slider.max = Math.log10(control["max"]);
-        slider.value = Math.log10(control["value"]);
+        if (control["log"]) {
+            slider.min = Math.log10(control["min"]);
+            slider.max = Math.log10(control["max"]);
+            slider.value = Math.log10(control["value"]);
+        } else {
+            slider.min = control["min"];
+            slider.max = control["max"];
+            slider.value = control["value"];
+        }
         slider.dataset.input = name;
 
         slider.addEventListener("input", function (evt) {
@@ -247,12 +249,8 @@ function updateMinMax() {
     for (const label of $qa("form#user-input label")) {
         const name = label.name;
         let values = [];
-        for (const control of CONTROLS) {
-            if (control["name"] == name) {
-                values = { min: control["min"], max: control["max"] };
-                break;
-            }
-        }
+        const control = CONTROLS[name];
+        values = { min: control["min"], max: control["max"] };
         if (!values) {
             console.warn("Missing min-max values for ", name);
             return;
@@ -323,16 +321,20 @@ function switchLang(lang) {
 }
 
 function updateFromSlider(slider) {
-    const id = `${slider.dataset.input}-input`;
-    let input = $id(id);
-    const actualValue = Math.pow(10, parseFloat(slider.value));
+    const id = `${slider.dataset.input}`;
+    let input = $id(`${id}-input`);
+    const control = CONTROLS[id];
+    const actualValue = control["log"]
+        ? Math.pow(10, parseFloat(slider.value))
+        : parseFloat(slider.value);
+
     input.value = actualValue.toFixed(parseInt(input.dataset.prec));
 }
 
 // Convert actual value back to slider position (log10)
 function updateFromInput(input) {
-    const id = `${input.dataset.range}-range`;
-    const slider = $id(id);
+    const id = `${input.dataset.range}`;
+    const slider = $id(`${id}-range`);
     const min = parseFloat(input.min);
     const max = parseFloat(input.max);
     let value = parseFloat(input.value);
@@ -345,8 +347,12 @@ function updateFromInput(input) {
     } else if (value > max) {
         value = max;
     }
-    if (value > 0) {
+
+    const control = CONTROLS[id];
+    if (control["log"] && value > 0) {
         slider.value = Math.log10(value);
+    } else {
+        slider.value = value;
     }
 }
 
@@ -428,7 +434,10 @@ async function runSeba() {
         Module.FS.unlink("SeBa.data");
     } catch (e) {
         // Ignore if file did not exist
-        console.debug("Error when attempting to remove 'SeBa.data': ", e);
+        console.log(
+            "Ignoring error when attempting to remove 'SeBa.data': ",
+            e,
+        );
     }
 
     // Call main(argc, argv) via callMain
