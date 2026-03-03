@@ -40,12 +40,14 @@
   "type1-field": "star type 1",
   "mass1-field": "stellar mass in Solar mass 1",
   "radius1-field": "stellar radius in Solar radii 1",
-  "efftemp1-field": "log of effective temperature 1",
+  "efftemp1-field": "Effective temperature 1",
   "coremass1-field": "core mass in Solar mass 1",
+  "lum1-field": "Luminosity of star 1",
   "id2-field": "stellar identity number 2",
   "type2-field": "star type 2",
   "mass2-field": "stellar mass in Solar mass 2",
   "radius2-field": "stellar radius in Solar radii 2",
-  "efftemp2-field": "log of effective temperature 2",
-  "coremass2-field": "core mass in Solar mass 2"
+  "efftemp2-field": "Effective temperature 2",
+  "coremass2-field": "core mass in Solar mass 2",
+  "lum2-field": "Luminosity of star 2"
 }

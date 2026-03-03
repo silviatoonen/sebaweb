@@ -1,5 +1,10 @@
 import createSeBa from "./seba.js";
 
+/* Physics constants */
+const SIGMA_SB = 5.670374419e-8;
+const R_SUN = 695.7e6;
+const L_SUN = 3.828e26;
+
 const FALLBACK_LANG = "en";
 // Give the user some milliseconds to update a value before
 // running SeBa again
@@ -38,12 +43,14 @@ const USERDATAFIELDS = [
     "radius1",
     "efftemp1",
     "coremass1",
+    "lum1",
     "id2",
     "type2",
     "mass2",
     "radius2",
     "efftemp2",
     "coremass2",
+    "lum2",
 ];
 
 const CONTROLS = [
@@ -488,6 +495,28 @@ function readData(fileContent) {
     DATAFIELDS.forEach((name, index) => {
         data[name] = array[index];
     });
+    /* Add luminosity as a derived column */
+    data["efftemp1"] = data["efftemp1"].map((value) => Math.pow(10, value));
+    data["efftemp2"] = data["efftemp2"].map((value) => Math.pow(10, value));
+    data["lum1"] = data["radius1"].map(
+        (item, i) =>
+            (4 *
+                Math.PI *
+                SIGMA_SB *
+                Math.pow(item * R_SUN, 2) *
+                Math.pow(data["efftemp1"][i], 4)) /
+            L_SUN,
+    );
+    data["lum2"] = data["radius2"].map(
+        (item, i) =>
+            (4 *
+                Math.PI *
+                SIGMA_SB *
+                Math.pow(item * R_SUN, 2) *
+                Math.pow(data["efftemp2"][i], 4)) /
+            L_SUN,
+    );
+
     return data;
 }
 

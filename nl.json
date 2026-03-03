@@ -40,12 +40,14 @@
   "type1-field": "ster 1 type",
   "mass1-field": "stermassa 1 in zonsmassa's",
   "radius1-field": "ster 1 straal in zonnestralen",
-  "efftemp1-field": "logarithme van de effectieve temperatuur van ster 1",
+  "efftemp1-field": "Effectieve temperatuur van ster 1",
   "coremass1-field": "kernmassa van ster 1 in zonsmassa's",
+  "lum1-field": "Helderheid van ster 1",
   "id2-field": "ster 2 identiteits nummer",
   "type2-field": "ster 2 type",
   "mass2-field": "stermassa 2 in zonsmassa's",
   "radius2-field": "ster 2 straal in zonnestralen",
-  "efftemp2-field": "logarithme van de effectieve temperatuur van ster 2",
-  "coremass2-field": "kernmassa van ster 2 in zonsmassa's"
+  "efftemp2-field": "Effectieve temperatuur van ster 2",
+  "coremass2-field": "kernmassa van ster 2 in zonsmassa's",
+  "lum2-field": "Helderheid van ster 2"
 }
