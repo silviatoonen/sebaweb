@@ -81,6 +81,7 @@ main {
 #program-log {
     grid-area: program-log;
     justify-self: start;
+    display: none;
 }
 
 h1 {

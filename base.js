@@ -9,6 +9,7 @@ import * as C_B from "./constants-binary.js";
 // get the query parameters from the url
 const params = new URLSearchParams(window.location.search);
 const USE_SINGLE = params.get("config") == "single";
+const DEBUG = params.get("debug") == "debug";
 
 const CONST = USE_SINGLE ? C_S : C_B;
 const createSeBa = USE_SINGLE ? createSeBaHires : createSeBaDefault;
@@ -565,6 +566,9 @@ function downloadData() {
 }
 
 function init() {
+    if (DEBUG) {
+        $id("program-log").style.display = "block";
+    }
     createControls();
     updateMinMax();
     $id("start-button").addEventListener("click", runSeba);
