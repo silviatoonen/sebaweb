@@ -4,11 +4,11 @@ import * as C_S from "./constants-single.js";
 import * as C_B from "./constants-binary.js";
 
 //const USE_SINGLE = JSON.parse(
-//    document.getElementById('config').textContent)['single'];
-//const USE_SINGLE = document.querySelector('meta[name="config"]').content == "single";
+//    document.getElementById('variant').textContent)['single'];
+//const USE_SINGLE = document.querySelector('meta[name="variant"]').content == "single";
 // get the query parameters from the url
 const params = new URLSearchParams(window.location.search);
-const USE_SINGLE = params.get("config") == "single";
+const USE_SINGLE = params.get("variant") == "single";
 const DEBUG = params.get("debug") == "debug";
 
 const CONST = USE_SINGLE ? C_S : C_B;

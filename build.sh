@@ -52,3 +52,6 @@ em++ -I../include -I../include/star -D_SRC_='"no_source_available"' -DHAVE_CONFI
 # Copy to different file
 cp seba_hirestime.js $scriptdir/
 cp seba_hirestime.wasm $scriptdir/
+
+# Restore the repository
+git restore .
