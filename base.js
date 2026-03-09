@@ -1,4 +1,18 @@
-import createSeBa from "./seba.js";
+import createSeBaDefault from "./seba_default.js";
+import createSeBaHires from "./seba_hirestime.js";
+import * as C_S from "./constants-single.js";
+import * as C_B from "./constants-binary.js";
+
+//const USE_SINGLE = JSON.parse(
+//    document.getElementById('variant').textContent)['single'];
+//const USE_SINGLE = document.querySelector('meta[name="variant"]').content == "single";
+// get the query parameters from the url
+const params = new URLSearchParams(window.location.search);
+const USE_SINGLE = params.get("variant") == "single";
+const DEBUG = params.get("debug") == "debug";
+
+const CONST = USE_SINGLE ? C_S : C_B;
+const createSeBa = USE_SINGLE ? createSeBaHires : createSeBaDefault;
 
 /* Physics constants */
 const SIGMA_SB = 5.670374419e-8;
@@ -10,104 +24,10 @@ const FALLBACK_LANG = "en";
 // running SeBa again
 const INPUTTIMEOUT = 500;
 // all data fields output by SeBa in `seba.data`
-const DATAFIELDS = [
-    "binid",
-    "bintype",
-    "transfertype",
-    "time",
-    "sep",
-    "ecc",
-    "id1",
-    "type1",
-    "mass1",
-    "radius1",
-    "efftemp1",
-    "coremass1",
-    "id2",
-    "type2",
-    "mass2",
-    "radius2",
-    "efftemp2",
-    "coremass2",
-];
-
-// data columns only of interest
-const USERDATAFIELDS = [
-    "transfertype",
-    "time",
-    "sep",
-    "ecc",
-    "id1",
-    "type1",
-    "mass1",
-    "radius1",
-    "efftemp1",
-    "coremass1",
-    "lum1",
-    "id2",
-    "type2",
-    "mass2",
-    "radius2",
-    "efftemp2",
-    "coremass2",
-    "lum2",
-];
-
-const CONTROLS = {
-    mass1: {
-        min: 0.01,
-        max: 100,
-        value: 2,
-        step: 0.01,
-        prec: 2,
-        log: true,
-    },
-    mass2: {
-        min: 0.01,
-        max: 100,
-        value: 1,
-        step: 0.01,
-        prec: 2,
-        log: true,
-    },
-    ecc: {
-        min: 0,
-        max: 1,
-        value: 0.2,
-        step: 0.0001,
-        prec: 4,
-        log: false,
-    },
-    sep: {
-        min: 1,
-        max: 1e4,
-        value: 200,
-        step: 0.01,
-        prec: 1,
-        log: true,
-    },
-    time: {
-        min: 1,
-        max: 1e7,
-        value: 13500,
-        step: 0.1,
-        prec: 0,
-        log: true,
-    },
-    metal: {
-        min: 1e-4,
-        max: 0.03,
-        value: 2e-2,
-        step: 0.0001,
-        prec: 5,
-        log: true,
-    },
-};
-const CONTROL_ORDER = ["mass1", "mass2", "ecc", "sep", "time", "metal"];
 
 const GRAPHDEFAULTS = {
     x: "time",
-    y: "sep",
+    y: USE_SINGLE ? "mass" : "mass1",
 };
 
 // Supported languages with a translation file
@@ -142,7 +62,7 @@ function updateTableHeader() {
     const lang = document.documentElement.lang;
     const translation = translations[lang];
     let ths = [];
-    for (const col of USERDATAFIELDS) {
+    for (const col of CONST.USERDATAFIELDS) {
         const key = `${col}-field`;
         const th = $create("th");
         let name = "";
@@ -174,8 +94,8 @@ function createControls() {
     let updateTimeout = null; // Keeps track of input waiting time
 
     const template = $q("#control-template");
-    for (const name of CONTROL_ORDER) {
-        const control = CONTROLS[name];
+    for (const name of CONST.CONTROL_ORDER) {
+        const control = CONST.CONTROLS[name];
         const clone = document.importNode(template.content, true);
 
         let div = clone.querySelector("div");
@@ -249,7 +169,7 @@ function updateMinMax() {
     for (const label of $qa("form#user-input label")) {
         const name = label.name;
         let values = [];
-        const control = CONTROLS[name];
+        const control = CONST.CONTROLS[name];
         values = { min: control["min"], max: control["max"] };
         if (!values) {
             console.warn("Missing min-max values for ", name);
@@ -285,7 +205,7 @@ function updatePlotOptions() {
             selection = GRAPHDEFAULTS[name];
         }
         let options = [];
-        for (const field of USERDATAFIELDS) {
+        for (const field of CONST.USERDATAFIELDS) {
             let option = $create("option");
             option.value = field;
             option.textContent = _t(`${field}-field`);
@@ -323,7 +243,7 @@ function switchLang(lang) {
 function updateFromSlider(slider) {
     const id = `${slider.dataset.input}`;
     let input = $id(`${id}-input`);
-    const control = CONTROLS[id];
+    const control = CONST.CONTROLS[id];
     const actualValue = control["log"]
         ? Math.pow(10, parseFloat(slider.value))
         : parseFloat(slider.value);
@@ -348,7 +268,7 @@ function updateFromInput(input) {
         value = max;
     }
 
-    const control = CONTROLS[id];
+    const control = CONST.CONTROLS[id];
     if (control["log"] && value > 0) {
         slider.value = Math.log10(value);
     } else {
@@ -414,21 +334,35 @@ async function runSeba() {
     stdoutLines.length = 0;
     stdoutElem.textContent = "";
 
-    const args = [
-        "-M",
-        document.getElementById("mass1-input").value.trim(),
-        "-m",
-        document.getElementById("mass2-input").value.trim(),
-        "-e",
-        document.getElementById("ecc-input").value.trim(),
-        "-a",
-        document.getElementById("sep-input").value.trim(),
-        "-T",
-        document.getElementById("time-input").value.trim(),
-        "-z",
-        document.getElementById("metal-input").value.trim(),
-    ];
-
+    const args = USE_SINGLE
+        ? [
+              "-M",
+              $id("mass-input").value.trim(),
+              "-m",
+              CONST.DEFAULT_PARAMS["mass2"],
+              "-e",
+              CONST.DEFAULT_PARAMS["ecc"],
+              "-a",
+              CONST.DEFAULT_PARAMS["sep"],
+              "-T",
+              $id("time-input").value.trim(),
+              "-z",
+              $id("metal-input").value.trim(),
+          ]
+        : [
+              "-M",
+              $id("mass1-input").value.trim(),
+              "-m",
+              $id("mass2-input").value.trim(),
+              "-e",
+              $id("ecc-input").value.trim(),
+              "-a",
+              $id("sep-input").value.trim(),
+              "-T",
+              $id("time-input").value.trim(),
+              "-z",
+              $id("metal-input").value.trim(),
+          ];
     // Remove previous SeBa.data if it exists
     try {
         Module.FS.unlink("SeBa.data");
@@ -500,22 +434,32 @@ function readData(fileContent) {
         }
     }
 
+    /* Convert the columns to named columns */
     data = {};
-    DATAFIELDS.forEach((name, index) => {
+    CONST.DATAFIELDS.forEach((name, index) => {
         data[name] = array[index];
     });
     /* Add luminosity as a derived column */
-    data["efftemp1"] = data["efftemp1"].map((value) => Math.pow(10, value));
-    data["efftemp2"] = data["efftemp2"].map((value) => Math.pow(10, value));
-    data["lum1"] = data["radius1"].map(
+    let efftemp = "efftemp";
+    let radius = "radius";
+    let lum = "lum";
+    if (!USE_SINGLE) {
+        efftemp += "1";
+        radius += "1";
+        lum += "1";
+    }
+    data[efftemp] = data[efftemp].map((value) => Math.pow(10, value));
+    data[lum] = data[radius].map(
         (item, i) =>
             (4 *
                 Math.PI *
                 SIGMA_SB *
                 Math.pow(item * R_SUN, 2) *
-                Math.pow(data["efftemp1"][i], 4)) /
+                Math.pow(data[efftemp][i], 4)) /
             L_SUN,
     );
+    // Star 2 remains the same; it's simply ignored for single evolution
+    data["efftemp2"] = data["efftemp2"].map((value) => Math.pow(10, value));
     data["lum2"] = data["radius2"].map(
         (item, i) =>
             (4 *
@@ -531,9 +475,9 @@ function readData(fileContent) {
 
 function populateTable(data) {
     let trs = [];
-    for (var rownr = 0; rownr < data[USERDATAFIELDS[0]].length; ++rownr) {
+    for (var rownr = 0; rownr < data[CONST.USERDATAFIELDS[0]].length; ++rownr) {
         let tr = $create("tr");
-        for (const col of USERDATAFIELDS) {
+        for (const col of CONST.USERDATAFIELDS) {
             const td = $create("td");
             td.textContent = data[col][rownr];
             tr.appendChild(td);
@@ -622,6 +566,9 @@ function downloadData() {
 }
 
 function init() {
+    if (DEBUG) {
+        $id("program-log").style.display = "block";
+    }
     createControls();
     updateMinMax();
     $id("start-button").addEventListener("click", runSeba);
