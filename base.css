@@ -7,12 +7,41 @@ body {
 }
 
 nav {
-    margin-left: 2rem;
+    color: #ccc;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 1200px;
 }
 
 nav select {
+    text-align: right;
+    float: right;
+}
+
+#menu {
     text-align: left;
     float: left;
+    display: inline-block;
+}
+#menu ul {
+    display: flex;
+    justify-content: space-around;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+#menu li {
+    margin: 0 1em;
+}
+#menu li a {
+    color: #ccc;
+    text-decoration: none;
+    &:hover {
+        color: #fff;
+    }
+    &:active {
+        color: #fff;
+    }
 }
 
 header {
@@ -56,12 +85,15 @@ main {
 #introduction {
     grid-area: introduction;
     justify-self: start;
+    display: none;
+    max-width: 1200px;
 }
 
 #controls {
     grid-area: controls;
     align-self: start;
     min-width: 300px;
+    display: none;
 }
 
 #graph {
@@ -70,12 +102,14 @@ main {
 
     min-width: 700px;
     overflow-x: auto;
+    display: none;
 }
 
 #data-section {
     grid-area: data-section;
     overflow-x: auto;
     overflow-y: hidden;
+    display: none;
 }
 
 #program-log {
@@ -256,6 +290,7 @@ select:disabled {
 #lang-switch {
     /* <select> doesn't automatically inherit font-size, since the element
    is usually taken from the OS */
+    display: inline-block;
     font-size: large;
     appearance: none;
     -webkit-appearance: none;
@@ -263,10 +298,7 @@ select:disabled {
     background: none;
     border: none;
     padding: 0;
-
-    /* tiny bit of light shadow, to make the text better readable against
-   a dark background */
-    text-shadow: 1px 1px 0px rgba(192, 192, 192, 0.6);
+    color: #ccc;
 
     &::-ms-expand {
         /* IE and Edge */

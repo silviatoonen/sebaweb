@@ -9,10 +9,11 @@ import * as C_B from "./constants-binary.js";
 // get the query parameters from the url
 const params = new URLSearchParams(window.location.search);
 const USE_SINGLE = params.get("variant") == "single";
+const VARIANT = params.get("variant");
 const DEBUG = params.get("debug") == "debug";
 
-const CONST = USE_SINGLE ? C_S : C_B;
-const createSeBa = USE_SINGLE ? createSeBaHires : createSeBaDefault;
+const CONST = VARIANT == "single" ? C_S : C_B;
+const createSeBa = VARIANT == "single" ? createSeBaHires : createSeBaDefault;
 
 /* Physics constants */
 const SIGMA_SB = 5.670374419e-8;
@@ -27,11 +28,12 @@ const INPUTTIMEOUT = 500;
 
 const GRAPHDEFAULTS = {
     x: "time",
-    y: USE_SINGLE ? "mass" : "mass1",
+    y: VARIANT == "single" ? "mass" : "mass1",
 };
 
 // Supported languages with a translation file
 const LANGUAGES = ["en", "nl"];
+const DEFAULT_LANG = "nl";
 
 const stdoutElem = $q("#program-log output");
 
@@ -218,10 +220,15 @@ function updatePlotOptions() {
     }
 }
 
-function switchLang(lang) {
+async function switchLang(lang) {
     document.documentElement.lang = lang;
-    if ((!lang) in translations) {
+    if (!(lang in translations)) {
         lang = FALLBACK_LANG;
+    }
+    try {
+        await cookieStore.set("lang", lang);
+    } catch (error) {
+        console.warn(`Error setting language cookie: ${error}`);
     }
     const translation = translations[lang];
     const elements = document.querySelectorAll("[data-i8n]");
@@ -334,35 +341,36 @@ async function runSeba() {
     stdoutLines.length = 0;
     stdoutElem.textContent = "";
 
-    const args = USE_SINGLE
-        ? [
-              "-M",
-              $id("mass-input").value.trim(),
-              "-m",
-              CONST.DEFAULT_PARAMS["mass2"],
-              "-e",
-              CONST.DEFAULT_PARAMS["ecc"],
-              "-a",
-              CONST.DEFAULT_PARAMS["sep"],
-              "-T",
-              $id("time-input").value.trim(),
-              "-z",
-              $id("metal-input").value.trim(),
-          ]
-        : [
-              "-M",
-              $id("mass1-input").value.trim(),
-              "-m",
-              $id("mass2-input").value.trim(),
-              "-e",
-              $id("ecc-input").value.trim(),
-              "-a",
-              $id("sep-input").value.trim(),
-              "-T",
-              $id("time-input").value.trim(),
-              "-z",
-              $id("metal-input").value.trim(),
-          ];
+    const args =
+        VARIANT == "single"
+            ? [
+                  "-M",
+                  $id("mass-input").value.trim(),
+                  "-m",
+                  CONST.DEFAULT_PARAMS["mass2"],
+                  "-e",
+                  CONST.DEFAULT_PARAMS["ecc"],
+                  "-a",
+                  CONST.DEFAULT_PARAMS["sep"],
+                  "-T",
+                  $id("time-input").value.trim(),
+                  "-z",
+                  $id("metal-input").value.trim(),
+              ]
+            : [
+                  "-M",
+                  $id("mass1-input").value.trim(),
+                  "-m",
+                  $id("mass2-input").value.trim(),
+                  "-e",
+                  $id("ecc-input").value.trim(),
+                  "-a",
+                  $id("sep-input").value.trim(),
+                  "-T",
+                  $id("time-input").value.trim(),
+                  "-z",
+                  $id("metal-input").value.trim(),
+              ];
     // Remove previous SeBa.data if it exists
     try {
         Module.FS.unlink("SeBa.data");
@@ -443,7 +451,7 @@ function readData(fileContent) {
     let efftemp = "efftemp";
     let radius = "radius";
     let lum = "lum";
-    if (!USE_SINGLE) {
+    if (VARIANT != "single") {
         efftemp += "1";
         radius += "1";
         lum += "1";
@@ -565,19 +573,35 @@ function downloadData() {
     URL.revokeObjectURL(url);
 }
 
-function init() {
+async function init() {
     if (DEBUG) {
         $id("program-log").style.display = "block";
     }
+    if (VARIANT == "single" || VARIANT == "double" || VARIANT == "binary") {
+        $id("introduction").style.display = "none";
+        $id("controls").style.display = "block";
+        $id("graph").style.display = "block";
+        $id("data-section").style.display = "block";
+    } else {
+        $id("introduction").style.display = "block";
+        $id("controls").style.display = "none";
+        $id("graph").style.display = "none";
+        $id("data-section").style.display = "none";
+    }
     createControls();
     updateMinMax();
+    /* Get a default language setting from the cookies */
+    const cookie = await cookieStore.get("lang");
+    const lang = cookie?.value || DEFAULT_LANG; /* cookie or default */
+    $id("lang-switch").value = lang;
+
     $id("start-button").addEventListener("click", runSeba);
     $id("download-data").addEventListener("click", downloadData);
-    $id("lang-switch").addEventListener("change", (event) =>
-        switchLang(event.target.value),
-    );
+    $id("lang-switch").addEventListener("change", async (event) => {
+        await switchLang(event.target.value);
+    });
     loadTranslations().then(() => {
-        switchLang("nl");
+        switchLang(lang);
         $id("start-button").disabled = false;
     });
 }
