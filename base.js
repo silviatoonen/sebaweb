@@ -237,10 +237,11 @@ async function switchLang(lang) {
         if (key in translation) {
             element.innerHTML = translation[key];
         } else {
+	    const value = translations[FALLBACK_LANG][key];
             console.log(
                 `falling back to default translation for ${key} = ${value}`,
             );
-            element.innerHTML = translations[FALLBACK_LANG][key];
+            element.innerHTML = value;
         }
     }
     updateTableHeader();
