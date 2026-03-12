@@ -412,9 +412,7 @@ function readData(fileContent) {
             continue;
         }
         const cols = trimmed.split(/\s+/);
-        for (const i in cols) {
-            array[i].push(parseFloat(cols[i]));
-        }
+	cols.forEach((value, i) => array[i].push(parseFloat(value)));
     }
 
     /* Convert the columns to named columns */
@@ -458,7 +456,7 @@ function readData(fileContent) {
 
 function populateTable(data) {
     let trs = [];
-    for (var rownr = 0; rownr < data[CONST.USERDATAFIELDS[0]].length; ++rownr) {
+    for (let rownr = 0; rownr < data[CONST.USERDATAFIELDS[0]].length; ++rownr) {
         let tr = $create("tr");
         for (const col of CONST.USERDATAFIELDS) {
             const td = $create("td");
