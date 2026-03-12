@@ -304,12 +304,12 @@ function clampValue(input) {
 // function to translate strings in JavaScript code
 function _t(key) {
     let lang = document.documentElement.lang;
-    if ((!lang) in translations) {
+    if (!(lang in translations)) {
         lang = FALLBACK_LANG;
     }
     const translation = translations[lang];
     let string = "";
-    if ((!key) in translation) {
+    if (!(key in translation)) {
         string = translations[FALLBACK_LANG][key];
     } else {
         string = translation[key];
@@ -499,10 +499,10 @@ function populateTable(data) {
 function plot(data) {
     let xaxis = $id("x-axis").value;
     let yaxis = $id("y-axis").value;
-    if ((!xaxis) in data) {
+    if (!(xaxis in data)) {
         xaxis = GRAPHDEFAULTS["x"];
     }
-    if ((!yaxis) in data) {
+    if (!(yaxis in data)) {
         yaxis = GRAPHDEFAULTS["y"];
     }
 
