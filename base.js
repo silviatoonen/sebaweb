@@ -67,6 +67,7 @@ function $create(element) {
 }
 
 let translations = {};
+let fileContent = "";
 let data = {};
 
 function updateTableHeader() {
@@ -245,6 +246,15 @@ function switchLang(lang) {
             element.innerHTML = value;
         }
     }
+
+    if (Object.keys(data).length) {
+        // Re-read the data, so we can perform the translation from
+        // type numbers to text again
+        // Note that the SeBa.data file does not need to be run again
+        readData();
+        populateTable();
+    }
+
     updateTableHeader();
     updatePlotOptions();
 }
@@ -252,7 +262,6 @@ function switchLang(lang) {
 // Update HTML data-theme attribute for use in the CSS
 // and replot if there was a theme switch
 function switchTheme(theme) {
-    console.log(theme, typeof theme);
     if (theme === "system") {
         delete document.documentElement.dataset.theme;
     } else {
@@ -261,7 +270,7 @@ function switchTheme(theme) {
     localStorage.setItem("theme", theme);
 
     if (Object.keys(data).length) {
-        plot(data);
+        plot();
     }
 }
 
@@ -409,8 +418,8 @@ async function runSeba() {
 
     // After main returns, try to read output.txt
     try {
-        const text = Module.FS.readFile("SeBa.data", { encoding: "utf8" });
-        data = readData(text);
+        fileContent = Module.FS.readFile("SeBa.data", { encoding: "utf8" });
+        readData();
 
         $id("download-data").disabled = false;
         // Enable graph options
@@ -418,10 +427,10 @@ async function runSeba() {
         $id("x-axis").disabled = false;
         $id("y-axis").disabled = false;
 
-        populateTable(data);
-        plot(data);
-    } catch (e) {
-        appendOutput("Could not read SeBa.data: " + e, true);
+        populateTable();
+        plot();
+    } catch (error) {
+        appendOutput(`Could not read SeBa.data: ${error}`, true);
     }
 
     // Reset the start button and status field
@@ -429,7 +438,27 @@ async function runSeba() {
     $id("status").textContent = "";
 }
 
-function readData(fileContent) {
+// "Translate" the stellar and binary types from numbers to text
+function translateTypes() {
+    CONST.DATAFIELDS.forEach((name) => {
+        if (name.startsWith("type")) {
+            for (let index in data[name]) {
+                const value = data[name][index];
+                const key = `type-${value}`;
+                data[name][index] = _t(key);
+            }
+        }
+        if (name === "bintype") {
+            for (let index in data[name]) {
+                const value = data[name][index];
+                const key = `bintype-${value}`;
+                data[name][index] = _t(key);
+            }
+        }
+    });
+}
+
+function readData() {
     const length = CONST.DATAFIELDS.length;
     var array = Array.from({ length: length }, (_) => []);
     const lines = fileContent.split(/\r?\n/);
@@ -447,7 +476,10 @@ function readData(fileContent) {
     CONST.DATAFIELDS.forEach((name, index) => {
         data[name] = array[index];
     });
-    /* Add luminosity as a derived column */
+
+    translateTypes(); // translate the *type columns
+
+    // Add luminosity as a derived column
     let efftemp = "efftemp";
     let radius = "radius";
     let lum = "lum";
@@ -477,11 +509,9 @@ function readData(fileContent) {
                 data["efftemp2"][i] ** 4) /
             L_SUN,
     );
-
-    return data;
 }
 
-function populateTable(data) {
+function populateTable() {
     let trs = [];
     for (let rownr = 0; rownr < data[CONST.USERDATAFIELDS[0]].length; ++rownr) {
         let tr = $create("tr");
@@ -496,7 +526,7 @@ function populateTable(data) {
     tbody.replaceChildren(...trs);
 }
 
-function plot(data) {
+function plot() {
     let xaxis = $id("x-axis").value;
     let yaxis = $id("y-axis").value;
     if (!(xaxis in data)) {
@@ -544,7 +574,7 @@ function plot(data) {
     Plotly.newPlot("plotly-graph", [plottingData], layout);
 }
 
-function dataToCSV(data) {
+function dataToCSV() {
     const keys = Object.keys(data);
     const header = keys.map((key) => _t(`${key}-field`)).join(",");
     const length = data[keys[0]].length;
@@ -585,8 +615,8 @@ function addEventListeners() {
         const newElem = elem.cloneNode(true);
         newElem.value = elem.value;
         newElem.addEventListener("change", () => {
-            plot(data);
-            populateTable(data);
+            plot();
+            populateTable();
         });
         const parent = elem.parentNode;
         parent.replaceChild(newElem, elem);
