@@ -1,8 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap");
 
 :root {
+    --color-bg: #ffffff;
+
+    --color-text: #666666;
     --color-text-label: #333333;
-    --color-text-base: #666666;
     --color-text-nav: #cccccc;
     --color-text-nav-highlight: #ffffff;
     --color-heading: brown;
@@ -10,14 +12,35 @@
     --color-title: #eee;
     --color-bg-subtle: #f9f9f9;
     --color-bg-subtle2: #eeeeee;
-    --color-bg-tooltip: #cccccc --color-border: #cccccc;
+    --color-bg-tooltip: #cccccc;
+
+    --table-row-border: #d6d6d6;
 
     --max-content-width: 1200px;
 }
 
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-bg: #1a1a1a;
+        --color-text: #aaaaaa;
+        --color-text-label: #cccccc;
+        --color-heading: darkorange;
+
+        --color-bg-subtle: #2a2a2a;
+        --color-bg-subtle2: #222222;
+        --color-bg-tooltip: #333333;
+
+        --table-row-border: #6d6d6d;
+    }
+}
+
+html {
+    background-color: var(--color-bg);
+}
+
 body {
     font-family: "Raleway", Arial, Helvetica, sans-serif;
-    color: var(--color-text-base);
+    color: var(--color-text);
     margin: 0;
 }
 
@@ -142,7 +165,7 @@ h1 {
 h2 {
     margin-bottom: 0;
     padding: 0.5rem;
-    color: brown;
+    color: var(--color-heading);
     font-size: x-large;
     font-weight: normal;
 }
@@ -150,7 +173,7 @@ h2 {
 details summary {
     margin-bottom: 1rem;
     padding: 0.5rem;
-    color: brown;
+    color: var(--color-heading);
     font-size: x-large;
 }
 
@@ -158,7 +181,7 @@ label {
     display: inline-block;
     margin: 0.5em 0.5ex;
     font-size: smaller;
-    color: #333;
+    color: var(--color-text-label);
 }
 
 /* Hide the stepper controls in the number input fields */
@@ -219,7 +242,7 @@ td {
     line-height: 10px;
 }
 #data-table tbody td {
-    border-bottom: 1px solid #d6d6d6;
+    border-bottom: 1px solid var(--table-row-border);
 }
 #data-table tbody tr:nth-child(odd) {
     background-color: var(--color-bg-subtle);
@@ -239,6 +262,7 @@ td {
     background-color: var(--color-bg-tooltip);
     color: var(--color-text-label);
     text-align: center;
+    text-wrap: balance;
     padding: 5px 0;
     border-radius: 6px;
     position: absolute;
