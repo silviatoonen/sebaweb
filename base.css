@@ -1,16 +1,31 @@
 @import url("https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap");
 
+:root {
+    --color-text-label: #333333;
+    --color-text-base: #666666;
+    --color-text-nav: #cccccc;
+    --color-text-nav-highlight: #ffffff;
+    --color-heading: brown;
+
+    --color-title: #eee;
+    --color-bg-subtle: #f9f9f9;
+    --color-bg-subtle2: #eeeeee;
+    --color-bg-tooltip: #cccccc --color-border: #cccccc;
+
+    --max-content-width: 1200px;
+}
+
 body {
     font-family: "Raleway", Arial, Helvetica, sans-serif;
-    color: #666;
+    color: var(--color-text-base);
     margin: 0;
 }
 
 nav {
-    color: #ccc;
+    color: var(--color-text-nav);
     margin-left: auto;
     margin-right: auto;
-    max-width: 1200px;
+    max-width: var(max-content-width);
 }
 
 nav select {
@@ -34,13 +49,13 @@ nav select {
     margin: 0 1em;
 }
 #menu li a {
-    color: #ccc;
+    color: var(--color-text-nav);
     text-decoration: none;
     &:hover {
-        color: #fff;
+        color: var(--color-text-nav-highlight);
     }
     &:active {
-        color: #fff;
+        color: var(--color-text-nav-highlight);
     }
 }
 
@@ -86,7 +101,7 @@ main {
     grid-area: introduction;
     justify-self: start;
     display: none;
-    max-width: 1200px;
+    max-width: var(--max-content-width);
 }
 
 #controls {
@@ -119,7 +134,7 @@ main {
 }
 
 h1 {
-    color: #eeeeee;
+    color: var(--color-title);
     font-size: 4rem;
     font-weight: lighter;
 }
@@ -176,7 +191,7 @@ input[type="range"] {
     line-height: 1.2rem;
     min-height: calc(1.2rem * 20); /* approx. 20 lines visible */
     max-height: 400px;
-    background: #f9f9f9;
+    background: var(--color-bg-subtle);
 }
 
 #data-table {
@@ -194,7 +209,7 @@ td {
     font-family: monospace;
 }
 #data-table thead tr {
-    background-color: #eeeeee;
+    background-color: var(--color-bg-subtle2);
 }
 /* Add a little bit of spacing between the header and the body */
 #data-table tbody:before {
@@ -207,10 +222,10 @@ td {
     border-bottom: 1px solid #d6d6d6;
 }
 #data-table tbody tr:nth-child(odd) {
-    background-color: #f9f9f9;
+    background-color: var(--color-bg-subtle);
 }
 #data-table tbody tr:nth-child(even) {
-    background-color: #eeeeee;
+    background-color: var(--color-bg-subtle2);
 }
 
 .tooltip {
@@ -221,8 +236,8 @@ td {
 .tooltiptext {
     visibility: hidden; /* Hidden by default */
     width: 260px;
-    background-color: #cccccc;
-    color: #333333;
+    background-color: var(--color-bg-tooltip);
+    color: var(--color-text-label);
     text-align: center;
     padding: 5px 0;
     border-radius: 6px;
@@ -243,7 +258,7 @@ td {
     margin-left: 10px;
     font-size: 0.9rem;
     font-style: italic;
-    color: #555;
+    color: #555555;
 }
 
 button {
@@ -251,7 +266,7 @@ button {
     padding: 0.3rem 1.3rem;
     margin: 0.2rem;
     border-radius: 1rem;
-    border: 3px solid #07f;
+    border: 3px solid #0077ff;
     background: #eeeeee;
     box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.6);
     font-size: 0.8rem;
@@ -275,7 +290,7 @@ select:disabled {
 }
 
 .control {
-    background-color: #eeeeee;
+    background-color: var(--color-bg-subtle2);
     margin: 1em 3ex 1em 1ex;
     padding: 0.2em 0.5ex;
 }
@@ -293,7 +308,7 @@ select:disabled {
     background: none;
     border: none;
     padding: 0;
-    color: #cccccc;
+    color: var(--color-text-nav);
 
     &::-ms-expand {
         /* IE and Edge */
