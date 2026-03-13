@@ -6,6 +6,7 @@
   "menu-binary": "Dubbel",
   "introduction": "Introductie",
   "introduction-text": "<p>SeBa is een software pakket om the evolutie van enkelvoudige en dubbelster systemten te simuleren, van hun nulleeftijd op de hoofdreeks tot en met het stadium van hun restanten. De simulatie is geldig voor stermass's van 0,01 tot en met 100 zonsmassa's, met varieerbare metaalgehaltes. SeBa bevat voorschriften voor massaverlies door sterwinden, supernova en dubbelster interacties.</p><p>Dit is een online versie, waarmee iemand SeBa in de browser kan draaien; het heeft beperkte configuratie parameters vergeleken met het command-line programma, en kan dienen als een beginpunt om over (dubbel)sterevolutie te leren.</p>",
+  "parameters": "parameters",
   "mass-name": "Massa van de ster",
   "mass1-name": "Massa ster 1",
   "mass2-name": "Massa ster 2",

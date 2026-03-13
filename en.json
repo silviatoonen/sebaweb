@@ -6,6 +6,7 @@
   "menu-binary": "Binary",
   "introduction": "Introduction",
   "introduction-text": "<p>SeBa is a software package to simulate the evolution of single and binary stars from the zero-age main-sequence up to and including remnant phases. It is valid for masses in the range 0.01 &ndash; 100 Solar masses with variable metallicity. SeBa includes prescriptions for mass loss by stellar winds, supernova and binary interactions.</p><p>This is an online version, which allows one to run SeBa through the browser; it has limited configuration parameters compared to the stand-alone command-line tool, and can serve as a starting point to learn about stellar (binary) evolution.</p>",
+  "parameters": "parameters",
   "mass-name": "Mass of the star",
   "mass1-name": "Mass star 1",
   "mass2-name": "Mass star 2",
