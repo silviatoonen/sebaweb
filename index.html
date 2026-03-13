@@ -5,16 +5,12 @@
     <title>SeBa online</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="base.css" />
-    <script src="https://cdn.plot.ly/plotly-3.3.0.min.js" defer></script>
+    <script src="https://cdn.plot.ly/plotly-3.4.0.min.js" defer></script>
     <script src="base.js" type="module"></script>
   </head>
   <body>
     <header id="header">
       <nav id="nav">
-        <select id="lang-switch" name="lang">
-          <option value="nl" selected>🇳🇱 NL</option>
-          <option value="en">🇬🇧 En</option>
-        </select>
         <div id="menu">
           <ul>
             <li><a href="?" data-i8n="menu-home"></a></li>
@@ -22,6 +18,15 @@
             <li><a href="?variant=binary" data-i8n="menu-binary"></a></li>
           </ul>
         </div>
+        <select id="lang-switch" name="lang">
+          <option value="nl" selected>🇳🇱 NL</option>
+          <option value="en">🇬🇧 En</option>
+        </select>
+        <select id="theme-switch" name="theme">
+          <option value="system" selected>🌗 System</option>
+          <option value="light">☀️ Light</option>
+          <option value="dark">🌙 Dark</option>
+        </select>
       </nav>
       <div id="banner">
         <h1 data-i8n="seba-main-title">SeBa online</h1>
