@@ -120,13 +120,12 @@ main {
 
 h1 {
     color: #eeeeee;
-    font-size: 60px;
+    font-size: 4rem;
     font-weight: lighter;
-    font-stretch: 100%;
 }
 
 h2 {
-    margin-bottom: 0rem;
+    margin-bottom: 0;
     padding: 0.5rem;
     color: brown;
     font-size: x-large;
