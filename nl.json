@@ -92,5 +92,8 @@
   "bintype-6": "massa overdracht",
   "bintype-7": "samensmelting",
   "bintype-8": "onbekend",
-  "bintype-9": "uit elkaar gegaan"
+  "bintype-9": "uit elkaar gegaan",
+  "show-star-size": "Laat stergrootte zien",
+  "scale-zoom": "Zoom",
+  "sun-earth-for-scale": "Zon en aarde voor de schaal"
 }

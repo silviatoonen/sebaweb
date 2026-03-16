@@ -5,6 +5,7 @@ prettier --tab-width 4 -w base.css
 prettier --tab-width 4 -w base.js
 prettier --tab-width 4 -w constants-binary.js
 prettier --tab-width 4 -w constants-single.js
+prettier --tab-width 4 -w colors.js
 
 python -m json.tool --indent 2  nl.json nl-json
 python -m json.tool --indent 2  en.json en-json

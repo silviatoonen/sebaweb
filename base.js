@@ -2,6 +2,7 @@ import createSeBaDefault from "./seba_default.js";
 import createSeBaHires from "./seba_hirestime.js";
 import * as C_S from "./constants-single.js";
 import * as C_B from "./constants-binary.js";
+import { starColor } from "./colors.js";
 
 const params = new URLSearchParams(window.location.search);
 const VARIANT = params.get("variant");
@@ -41,6 +42,14 @@ const PLOTLY_DARK_MODE = {
     yaxis: { color: "#f0f0f0", gridcolor: "#444", zerolinecolor: "#555" },
 };
 
+// Starting sizes in pixels
+const SIZES = {
+    earth: 10 / 109,
+    sun: 10,
+    star: 0,
+    star2: 0,
+};
+
 // Supported languages with a translation file
 const LANGUAGES = ["en", "nl"];
 const DEFAULT_LANG = "nl";
@@ -69,6 +78,7 @@ function $create(element) {
 let translations = {};
 let fileContent = "";
 let data = {};
+let rafid = null;
 
 function updateTableHeader() {
     const lang = document.documentElement.lang;
@@ -426,7 +436,7 @@ async function runSeba() {
         $id("graph-style").disabled = false;
         $id("x-axis").disabled = false;
         $id("y-axis").disabled = false;
-
+        $id("show-size").disabled = false;
         populateTable();
         plot();
     } catch (error) {
@@ -557,6 +567,16 @@ function plot() {
             ? PLOTLY_DARK_MODE
             : {};
     }
+    const shapes = {
+        type: "line",
+        x0: 0,
+        x1: 0,
+        y0: 0,
+        y1: 1,
+        yref: "paper",
+        line: { color: "red", width: 1, dash: "dot" },
+        visible: false,
+    };
     const layout = {
         ...theme,
         xaxis: {
@@ -570,8 +590,9 @@ function plot() {
             ...theme.yaxis,
         },
         width: width,
+        shapes: [shapes],
     };
-    Plotly.newPlot("plotly-graph", [plottingData], layout);
+    Plotly.newPlot("plotly-graph", [plottingData, shapes], layout);
 }
 
 function dataToCSV() {
@@ -621,6 +642,117 @@ function addEventListeners() {
         const parent = elem.parentNode;
         parent.replaceChild(newElem, elem);
     }
+
+    $id("show-size").addEventListener("change", (event) => {
+        if (event.target.checked) {
+            $id("star-size-zoomrange").style.display = "block";
+            $id("star-size-zoomvalue").style.display = "block";
+            $id("sun-earth-scale").style.display = "block";
+            $id("star-size-graph").style.display = "block";
+            const zoom = $id("star-size-zoomrange").value;
+            const scale = 10 ** parseFloat(zoom);
+            //$id("star-size-zoomvalue").innerHTML =
+            //    _t("scale-zoom") + `: ${scale.toPrecision(3)}`;
+        } else {
+            $id("star-size-zoomrange").style.display = "none";
+            $id("star-size-zoomvalue").style.display = "none";
+            $id("sun-earth-scale").style.display = "none";
+            $id("star-size-graph").style.display = "none";
+        }
+    });
+    $id("star-size-zoomrange").addEventListener("change", (event) => {
+        const scale = 10 ** parseFloat(event.target.value);
+        // $id("star-size-zoomvalue").innerHTML =
+        //     _t("scale-zoom") + `: ${scale.toPrecision(3)}`;
+        const earth = $id("earth");
+        earth.setAttribute("r", SIZES["earth"] * scale);
+        $id("sun").setAttribute("r", SIZES["sun"] * scale);
+        $id("star").setAttribute("r", SIZES["star"] * scale);
+        $id("star2").setAttribute("r", SIZES["star2"] * scale);
+    });
+
+    const graph = $id("plotly-graph");
+    graph.addEventListener("mousemove", function (event) {
+        if (!$id("show-size").checked) {
+            return;
+        }
+        if (rafid) {
+            cancelAnimationFrame(rafid);
+        }
+        rafid = requestAnimationFrame(() => {
+            const fullLayout = graph._fullLayout;
+            const margin = fullLayout.margin;
+            const bb = graph.getBoundingClientRect();
+            const xPixel = event.clientX - bb.left - margin.l;
+            if (xPixel > 0 && xPixel < fullLayout.width - margin.l - margin.r) {
+                const time = fullLayout.xaxis.p2d(xPixel);
+                // Use Plotly.relayout for high-performance updates
+                Plotly.relayout(graph, {
+                    "shapes[0].x0": time,
+                    "shapes[0].x1": time,
+                    "shapes[0].visible": true,
+                });
+                if (VARIANT == "single") {
+                    const radius = interpolateRadius(time, "radius");
+                    SIZES["star"] = SIZES["sun"] * radius;
+                    const scale =
+                        10 ** parseFloat($id("star-size-zoomrange").value);
+                    $id("star").setAttribute("r", SIZES["star"] * scale);
+
+                    const temp = interpolateRadius(time, "efftemp");
+                    $id("star").setAttribute("fill", starColor(temp));
+                } else {
+                    const radius = interpolateRadius(time, "radius1");
+                    SIZES["star"] = SIZES["sun"] * radius;
+                    const scale =
+                        10 ** parseFloat($id("star-size-zoomrange").value);
+                    $id("star").setAttribute("r", SIZES["star"] * scale);
+
+                    const temp = interpolateRadius(time, "efftemp1");
+                    $id("star").setAttribute("fill", starColor(temp));
+
+                    const radius2 = interpolateRadius(time, "radius2");
+                    SIZES["star2"] = SIZES["sun"] * radius2;
+                    const scale2 =
+                        10 ** parseFloat($id("star-size-zoomrange").value);
+                    $id("star2").setAttribute("r", SIZES["star2"] * scale2);
+
+                    const temp2 = interpolateRadius(time, "efftemp2");
+                    $id("star2").setAttribute("fill", starColor(temp2));
+                }
+            }
+        });
+    });
+    graph.addEventListener("mouseleave", function () {
+        Plotly.relayout(graph, { "shapes[0].visible": false });
+    });
+}
+
+function interpolateRadius(time, rkey) {
+    const times = data["time"];
+    const n = times.length;
+    const radii = data[rkey];
+    let i = -1;
+    let w1 = 1.0;
+    let w2 = 0.0;
+    if (time < times[0]) {
+        i = 0;
+    } else if (time >= times[n - 1]) {
+        i = n - 1;
+    } else {
+        for (const [j, t] of times.entries()) {
+            if (t >= time) {
+                const dt = t - times[j - 1];
+                w1 = dt / (time - times[j - 1]); // before
+                w2 = dt / (t - time); // after
+                i = j;
+                break;
+            }
+        }
+    }
+
+    // weight average
+    return (radii[i - 1] * w1 + radii[i] * w2) / (w1 + w2);
 }
 
 async function init() {

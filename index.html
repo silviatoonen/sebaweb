@@ -86,24 +86,76 @@
       <section id="graph">
         <h2 data-i8n="header-graph">Graph</h2>
         <div id="plotly-graph"></div>
-        <div class="axis-options">
-          <div class="graph-style">
-            <label for="graph-style" data-i8n="graph-style"></label>
-            <select name="style" id="graph-style" disabled>
-              <option value="linlin" data-i8n="graph-linlin"></option>
-              <option value="linlog" data-i8n="graph-linlog"></option>
-              <option value="loglin" data-i8n="graph-loglin"></option>
-              <option value="loglog" selected data-i8n="graph-loglog"></option>
-            </select>
+        <div id="graph-options">
+          <div class="axis-options">
+            <div class="graph-style">
+              <label for="graph-style" data-i8n="graph-style"></label>
+              <select name="style" id="graph-style" disabled>
+                <option value="linlin" data-i8n="graph-linlin"></option>
+                <option value="linlog" data-i8n="graph-linlog"></option>
+                <option value="loglin" data-i8n="graph-loglin"></option>
+                <option
+                  value="loglog"
+                  selected
+                  data-i8n="graph-loglog"
+                ></option>
+              </select>
+            </div>
+            <div class="axis-column">
+              <label for="x-axis" data-i8n="x-axis"></label>
+              <select name="xaxis" id="x-axis" disabled></select>
+            </div>
+            <div class="axis-column">
+              <label for="y-axis" data-i8n="y-axis"></label>
+              <select name="yaxis" id="y-axis" disabled></select>
+            </div>
           </div>
-          <div class="axis-column">
-            <label for="x-axis" data-i8n="x-axis"></label>
-            <select name="xaxis" id="x-axis" disabled></select>
+          <div id="star-size">
+            <input type="checkbox" id="show-size" disabled /><label
+              for="show-size"
+              data-i8n="show-star-size"
+            ></label
+            ><br />
+            <label
+              id="star-size-zoomvalue"
+              for="star-size-zoomrange"
+              data-i8n="scale-zoom"
+            ></label>
+            <input
+              type="range"
+              id="star-size-zoomrange"
+              step="0.01"
+              data-input="template-input"
+              min="-2.5"
+              max="2.5"
+            /><br />
+            <p id="sun-earth-scale" data-i8n="sun-earth-for-scale"></p>
           </div>
-          <div class="axis-column">
-            <label for="y-axis" data-i8n="y-axis"></label>
-            <select name="yaxis" id="y-axis" disabled></select>
-          </div>
+          <svg
+            id="star-size-graph"
+            width="500"
+            height="300"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle
+              id="sun"
+              cx="15"
+              cy="15"
+              r="10"
+              fill="#ffd000"
+              opacity="1"
+            />
+            <circle
+              id="earth"
+              cx="1"
+              cy="15"
+              r="0.1"
+              fill="#008B8B"
+              opacity="1"
+            />
+            <circle id="star" cx="50" cy="50" r="0" fill="red" opacity="1" />
+            <circle id="star2" cx="250" cy="50" r="0" fill="red" opacity="1" />
+          </svg>
         </div>
       </section>
 

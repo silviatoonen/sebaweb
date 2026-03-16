@@ -92,5 +92,8 @@
   "bintype-6": "mass transfer",
   "bintype-7": "merger",
   "bintype-8": "unknown",
-  "bintype-9": "separated"
+  "bintype-9": "separated",
+  "show-star-size": "Show star size",
+  "scale-zoom": "Zoom",
+  "sun-earth-for-scale": "Sun and Earth for scale"
 }

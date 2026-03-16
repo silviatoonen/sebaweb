@@ -156,8 +156,9 @@ main {
     align-self: end;
 
     min-width: 700px;
-    overflow-x: auto;
+
     display: none;
+    overflow: visible;
 }
 
 #data-section {
@@ -356,4 +357,26 @@ select:disabled {
         /* IE and Edge */
         display: none;
     }
+}
+
+#graph-options {
+    display: flex;
+    align-items: flex-start;
+}
+
+#star-size-zoomrange,
+#star-size-zoomvalue,
+#sun-earth-scale,
+#star-size-graph {
+    display: none;
+}
+
+#star-size {
+    anchor-name: --star-size-anchor;
+}
+
+#star-size-graph {
+    z-index: -1;
+    pointer-events: none; /* Clicks pass through the SVG to elements below */
+    overflow: visible; /* Allows drawing at negative coordinates */
 }
