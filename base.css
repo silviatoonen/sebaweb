@@ -373,6 +373,10 @@ select:disabled {
 
 #star-size {
     anchor-name: --star-size-anchor;
+    margin: 0 1em;
+    padding: 0 1em;
+    border-left: 2px solid #ddd;
+    min-height: 5em;
 }
 
 #star-size-graph {
