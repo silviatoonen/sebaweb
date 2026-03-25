@@ -5,7 +5,20 @@
   "menu-single": "Single",
   "menu-binary": "Binary",
   "introduction": "Introduction",
-  "introduction-text": "<p>SeBa is a software package to simulate the evolution of single and binary stars from the zero-age main-sequence up to and including remnant phases. It is valid for masses in the range 0.01 &ndash; 100 Solar masses with variable metallicity. SeBa includes prescriptions for mass loss by stellar winds, supernova and binary interactions.</p><p>This is an online version, which allows one to run SeBa through the browser; it has limited configuration parameters compared to the stand-alone command-line tool, and can serve as a starting point to learn about stellar (binary) evolution.</p>",
+  "introduction-text": "<p>Welcome to Battle of the Stars: Science Arena – the place where you get to put the universe in your own hands. Here, everything revolves around stars, planets, and black holes, but in a way that lets you discover, experiment, and play for yourself. <\p>
+  <p>On this site, you can:
+  <ul>
+<li>play with the life story of a single star: see how it swells up, loses mass, and changes over time</li>
+<li>try out how a star can end up as a white dwarf, neutron star, or black hole</li>
+<li>watch how stars orbit each other</li>
+<li>experiment with orbit size and eccentricity (how round or stretched out an orbit is)</li>
+<li>explore what happens when stars get too close to each other</li>
+<li>find out if, and when, a star can “eat” a planet – and what can go wrong along the way</li>
+  <\ul><\p>
+<p>Battle of the Stars is designed for everyone who is curious about the universe – you don’t need to be an expert, just a bit interested (and maybe brave enough to play with supernovae and black holes). <br>
+Ready to discover the rules of the universe – and sometimes bend them a little? <br>
+Start the StarBattle and dive into the cosmos!<\p>
+<p>SeBa is a software package to simulate the evolution of single and binary stars from the zero-age main-sequence up to and including remnant phases. It is valid for masses in the range 0.01 &ndash; 100 Solar masses with variable metallicity. SeBa includes prescriptions for mass loss by stellar winds, supernova and binary interactions.</p><p>This is an online version, which allows one to run SeBa through the browser; it has limited configuration parameters compared to the stand-alone command-line tool, and can serve as a starting point to learn about stellar (binary) evolution.</p>",
   "parameters": "Parameters",
   "mass-name": "Mass of the star",
   "mass1-name": "Mass star 1",
