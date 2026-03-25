@@ -5,7 +5,19 @@
   "menu-single": "Enkel",
   "menu-binary": "Dubbel",
   "introduction": "Introductie",
-  "introduction-text": "<p>SeBa is een software pakket om the evolutie van enkelvoudige en dubbelster systemten te simuleren, van hun nulleeftijd op de hoofdreeks tot en met het stadium van hun restanten. De simulatie is geldig voor stermass's van 0,01 tot en met 100 zonsmassa's, met varieerbare metaalgehaltes. SeBa bevat voorschriften voor massaverlies door sterwinden, supernova en dubbelster interacties.</p><p>Dit is een online versie, waarmee iemand SeBa in de browser kan draaien; het heeft beperkte configuratie parameters vergeleken met het command-line programma, en kan dienen als een beginpunt om over (dubbel)sterevolutie te leren.</p>",
+  "introduction-text": "<p> Welkom bij **Sterrestrijd** – de plek waar jij het universum in je eigen handen krijgt.  Hier draait alles om **sterren, planeten en zwarte gaten**, maar dan op een manier waarop je zelf kunt ontdekken, uitproberen én spelen.<\p>
+  <p> Op deze site kun je: <br>
+- spelen met de **levensloop van één ster**: zien hoe een ster opzwelt, massa verliest en verandert tijdens haar leven  
+- uitproberen hoe je van een ster een **witte dwerg, neutronenster of zwart gat** maakt  
+- zelf zien hoe **sterren om elkaar heen draaien**  
+- experimenteren met **baangroottes en excentriciteit** (hoe rond of ovaal een baan is)  
+- onderzoeken wat er gebeurt als sterren **te dicht bij elkaar komen**  
+- ontdekken of, en wanneer, een **ster een planeet opeet** – en wat daar allemaal bij mis kan gaan  
+<\p>
+<p>Sterrestrijd is gemaakt voor **iedereen** die nieuwsgierig is naar het heelal – je hoeft geen expert te zijn, alleen een beetje interesse (en misschien wat durf om met supernova’s en zwarte gaten te spelen). <br>
+Ben je klaar om de regels van het heelal te ontdekken – en soms een beetje te buigen?  <br>
+**Start de Sterrestrijd en duik het universum in!**<\p>
+  <p>SeBa is een software pakket om the evolutie van enkelvoudige en dubbelster systemten te simuleren, van hun nulleeftijd op de hoofdreeks tot en met het stadium van hun restanten. De simulatie is geldig voor stermass's van 0,01 tot en met 100 zonsmassa's, met varieerbare metaalgehaltes. SeBa bevat voorschriften voor massaverlies door sterwinden, supernova en dubbelster interacties.</p><p>Dit is een online versie, waarmee iemand SeBa in de browser kan draaien; het heeft beperkte configuratie parameters vergeleken met het command-line programma, en kan dienen als een beginpunt om over (dubbel)sterevolutie te leren.</p>",
   "parameters": "Parameters",
   "mass-name": "Massa van de ster",
   "mass1-name": "Massa ster 1",
@@ -23,7 +35,7 @@
   "metal-tooltip": "Metalliticiteit is de fractie van atomen met atoomnummers groter dan dat van helium, vergeleken met de totale stermassa (die voornamelijk bestaat uit waterstof en helium).",
   "program-log": "Programma log",
   "start": "start",
-  "running...": "draaiende...",
+  "running...": "draaiend...",
   "update-directly": "Werk automatisch bij",
   "update-directly-tooltip": "Draai SeBa automatisch na het veranderen van een parameter",
   "header-graph": "Grafiek",
