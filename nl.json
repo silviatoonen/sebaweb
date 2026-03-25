@@ -5,19 +5,19 @@
   "menu-single": "Enkel",
   "menu-binary": "Dubbel",
   "introduction": "Introductie",
-  "introduction-text": "<p> Welkom bij **Sterrestrijd** – de plek waar jij het universum in je eigen handen krijgt.  Hier draait alles om **sterren, planeten en zwarte gaten**, maar dan op een manier waarop je zelf kunt ontdekken, uitproberen én spelen.<\p>
+  "introduction-text": "<p> Welkom bij <strong>Sterrestrijd<\strong> – de plek waar jij het universum in je eigen handen krijgt.  Hier draait alles om <strong>sterren, planeten en zwarte gaten<\strong>, maar dan op een manier waarop je zelf kunt ontdekken, uitproberen én spelen.<\p>
   <p> Op deze site kun je: 
 <ul>
-<li>spelen met de **levensloop van één ster**: zien hoe een ster opzwelt, massa verliest en verandert tijdens haar leven<\li>
-<li>uitproberen hoe je van een ster een **witte dwerg, neutronenster of zwart gat** maakt<\li>  
+<li>spelen met de <br>levensloop van één ster<\br>: zien hoe een ster opzwelt, massa verliest en verandert tijdens haar leven<\li>
+<li>uitproberen hoe je van een ster een <br>witte dwerg, neutronenster of zwart gat<\br> maakt<\li>  
 <li>zelf zien hoe **sterren om elkaar heen draaien**<\li>  
-<li>experimenteren met **baangroottes en excentriciteit** (hoe rond of ovaal een baan is)<\li>  
-<li>onderzoeken wat er gebeurt als sterren **te dicht bij elkaar komen**<\li>  
-<li>ontdekken of, en wanneer, een **ster een planeet opeet** – en wat daar allemaal bij mis kan gaan<\li>  
+<li>experimenteren met <br>baangroottes en excentriciteit<\br> (hoe rond of ovaal een baan is)<\li>  
+<li>onderzoeken wat er gebeurt als sterren <br>te dicht bij elkaar komen<\br><\li>  
+<li>ontdekken of, en wanneer, een <br>ster een planeet opeet<\br> – en wat daar allemaal bij mis kan gaan<\li>  
 <\ul><\p>
-<p>Sterrestrijd is gemaakt voor **iedereen** die nieuwsgierig is naar het heelal – je hoeft geen expert te zijn, alleen een beetje interesse (en misschien wat durf om met supernova’s en zwarte gaten te spelen). <br>
+<p>Sterrestrijd is gemaakt voor <br>iedereen<\br> die nieuwsgierig is naar het heelal – je hoeft geen expert te zijn, alleen een beetje interesse (en misschien wat durf om met supernova’s en zwarte gaten te spelen). <br>
 Ben je klaar om de regels van het heelal te ontdekken – en soms een beetje te buigen?  <br>
-**Start de Sterrestrijd en duik het universum in!**<\p>
+<strong>Start de Sterrestrijd en duik het universum in!<\strong><\p>
   <p>SeBa is een software pakket om the evolutie van enkelvoudige en dubbelster systemten te simuleren, van hun nulleeftijd op de hoofdreeks tot en met het stadium van hun restanten. De simulatie is geldig voor stermass's van 0,01 tot en met 100 zonsmassa's, met varieerbare metaalgehaltes. SeBa bevat voorschriften voor massaverlies door sterwinden, supernova en dubbelster interacties.</p><p>Dit is een online versie, waarmee iemand SeBa in de browser kan draaien; het heeft beperkte configuratie parameters vergeleken met het command-line programma, en kan dienen als een beginpunt om over (dubbel)sterevolutie te leren.</p>",
   "parameters": "Parameters",
   "mass-name": "Massa van de ster",
