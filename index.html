@@ -16,6 +16,8 @@
             <li><a href="?" data-i8n="menu-home"></a></li>
             <li><a href="?variant=single" data-i8n="menu-single"></a></li>
             <li><a href="?variant=binary" data-i8n="menu-binary"></a></li>
+			<li data-i8n="menu-projects"></li>
+			<li data-i8n="menu-seba"></li>
           </ul>
         </div>
         <select id="lang-switch" name="lang">
@@ -33,12 +35,35 @@
       </div>
     </header>
     <main>
-      <section id="introduction">
+      <section id="introduction" class="invisible">
         <h2 data-i8n="introduction"></h2>
         <div data-i8n="introduction-text"></div>
+        <br>
+        <div class="tile-container">
+          <!-- Tile 1 -->
+          <a href="?variant=single" class="tile-btn">
+            <div class="tile-top">Launch </div>
+            <div class="tile-bottom">Star Simulator </div>
+          </a>
+          <!-- Tile 2 -->
+          <a href="?variant=binary" class="tile-btn">
+            <div class="tile-top">Launch </div>
+            <div class="tile-bottom">Binary Simulator</div>
+          </a>
+        </div>
+        <br>
+       <div data-i8n="introduction-text2"></div>
+      </section>
+      <section id="introduction-star" class="invisible">
+        <h2 data-i8n="introduction-star"></h2>
+        <div data-i8n="introduction-text-star"></div>
+      </section>
+      <section id="introduction-binary" class="invisible">
+        <h2 data-i8n="introduction-binary"></h2>
+        <div data-i8n="introduction-text-binary"></div>
       </section>
 
-      <section id="controls">
+      <section id="controls" class="invisible">
         <h2 data-i8n="parameters"></h2>
         <form id="user-input">
           <template id="control-template">
@@ -83,7 +108,7 @@
         <p id="status"></p>
       </section>
 
-      <section id="graph">
+      <section id="graph" class="invisible">
         <h2 data-i8n="header-graph">Graph</h2>
         <div id="plotly-graph"></div>
         <div id="graph-options">
@@ -118,21 +143,28 @@
             ><br />
             <label
               id="star-size-zoomvalue"
+              class="invisible"
               for="star-size-zoomrange"
               data-i8n="scale-zoom"
             ></label>
             <input
               type="range"
               id="star-size-zoomrange"
+              class="invisible"
               step="0.01"
               data-input="template-input"
               min="-2.5"
               max="2.5"
             /><br />
-            <p id="sun-earth-scale" data-i8n="sun-earth-for-scale"></p>
+            <p
+              id="sun-earth-scale"
+              class="invisible"
+              data-i8n="sun-earth-for-scale"
+            ></p>
           </div>
           <svg
             id="star-size-graph"
+            class="invisible"
             width="500"
             height="300"
             xmlns="http://www.w3.org/2000/svg"
@@ -174,7 +206,7 @@
         </div>
       </section>
 
-      <section id="data-section">
+      <section id="data-section" class="invisible">
         <h2 data-i8n="header-results">Results</h2>
         <button id="download-data" data-i8n="download-data" disabled>
           Download data as CSV
@@ -187,7 +219,7 @@
         </table>
       </section>
 
-      <section id="program-log">
+      <section id="program-log" class="invisible">
         <details>
           <summary data-i8n="program-log">Program log</summary>
           <output></output>

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sterrestrijd</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="base.css" />
+  </head>
+  <body>
+    <header id="header">
+      <nav id="nav">
+        <div id="menu">
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html?variant=single" data-i8n="menu-single">Ster</a></li>
+            <li><a href="index.html?variant=binary" data-i8n="menu-binary">Dubbelster</a></li>
+            <li><a href="projects-en.html">Projecten</a></li>
+            <li><a href="seba-en.html">SeBa</a></li>
+          </ul>
+        </div>
+      </nav>
+      <div id="banner">
+        <h1>Battle of the Stars</h1>
+      </div>
+    </header>
+    <main>
+
+
+<section id="introduction">
+
+<h2> <b>The stellar evolution code SeBa </b></h2>
+<h3> The name </h3>
+
+<p>Long ago, on the banks of the Nile, a young student sat beside his teacher in the shade of a temple wall. Above them, the evening sky slowly darkened, and one by one the first stars appeared.<br><br>
+'Master,' the boy asked, 'what do the gods call those little lights in the sky?'<br>
+The teacher smiled. 'Those, my boy, are seba – stars'.<br><br>
+In Ancient Egyptian, <b>seba</b> didn’t just mean a bright dot in the sky. It was a sacred sign. In hieroglyphs, seba was often written as a <b>five-pointed star </b>(𓇼), a small but powerful symbol. For the Egyptians, stars were not dead lights, but <b>souls, gods, and guides in the night</b>.<br><br>
+Inside the temple, on the ceilings of tombs and sanctuaries, those stars were everywhere. Blue heavens with golden dots: an eternal night in which the souls of the dead continued to live as stars. <b>Seba</b> thus stood not only for the physical star, but for <b>cosmic order, time, and the journey of the soul</b>.<br><br>
+But seba had another, surprising meaning.<br><br>
+Someone who guides you in life is also a seba. From the same word family comes <b>'sebayt'</b> – a wisdom text, instruction. A <b>teacher</b> was someone who led you through life, just as the stars guided travelers through the desert. The line between <b>star</b> and <b>teacher</b> was thin: both show you the way, both help you find your place in the great order of the world.<br><br>
+In this way, seba in ancient Egypt became more than just a word. It was a star in the sky, a soul in the afterlife, a symbol of order and time, and a guide or teacher who lights your path.</p>
+
+<h3> The code </h3>
+
+<p>SeBa is a computer program that simulates how stars live and change over time. Instead of observing a single star for billions of years—which is impossible—it uses physics to predict how stars evolve from their birth to their final stages. Inside every star, gravity pulls matter inward, while pressure from hot gas and energy released by nuclear reactions push outward. At the same time, energy produced in the core travels to the surface and escapes as light. SeBa uses detailed physical models that describe how these processes balance each other, allowing it to represent stars at different stages of their lives.</p>
+
+<p>Rather than solving all of these complex physical processes from scratch every time, SeBa works by interpolating between many detailed stellar models that have already been calculated. You can think of this like having a library of “snapshots” of stars of different masses and ages. These models include key processes such as nuclear burning (where elements like hydrogen are fused into heavier elements), mass loss through stellar winds, and dramatic events like supernova explosions. SeBa also keeps track of how stars change when they interact in binary systems, including mass transfer between stars, the formation of compact objects like white dwarfs, neutron stars, and black holes, and effects such as stellar mergers and tidal interactions. By smoothly connecting between precomputed models, the code can quickly and efficiently follow the evolution of many stars over long timescales.</p>
+
+<p>This is an online version, which allows one to run SeBa through the browser; it has limited configuration parameters compared to the stand-alone tool (for the <a href="https://github.com/amusecode/seba">fanatics</a>), and can serve as a starting point to learn about stellar (binary) evolution. </p>
+
+<p>Because of this speed and flexibility, SeBa has been widely used in astrophysics research. Scientists have applied it to study the origins of Type Ia supernovae, the formation of gravitational wave sources such as merging black holes and neutron stars, and the behavior of stars in dense clusters where collisions can occur. It has also been used to investigate X-ray binaries, the evolution of star clusters, and possible sources of fast radio bursts. The code and its methods are described in detail in two key papers: Portegies Zwart & Verbunt (1996) and Toonen, Nelemans & Portegies Zwart (2012), which provide the scientific foundation for how SeBa models stellar evolution and interactions.</p>
+
+</section>  
+
+    </main>
+  </body>
+</html>

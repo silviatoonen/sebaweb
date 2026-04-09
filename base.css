@@ -12,7 +12,7 @@
     --color-text-label: #333333;
     --color-text-nav: #cccccc;
     --color-text-nav-highlight: #ffffff;
-    --color-heading: brown;
+    --color-heading: #5F84BC;
 
     --color-title: #eee;
     --color-bg-subtle: #f9f9f9;
@@ -26,7 +26,7 @@
     --color-bg: #1a1a1a;
     --color-text: #aaaaaa;
     --color-text-label: #cccccc;
-    --color-heading: darkorange;
+    --color-heading: #9cb5db;
 
     --color-bg-subtle: #2a2a2a;
     --color-bg-subtle2: #222222;
@@ -40,7 +40,7 @@
         --color-bg: #1a1a1a;
         --color-text: #aaaaaa;
         --color-text-label: #cccccc;
-        --color-heading: darkorange;
+        --color-heading: #9cb5db;
 
         --color-bg-subtle: #2a2a2a;
         --color-bg-subtle2: #222222;
@@ -113,6 +113,8 @@ main {
     grid-template-columns: 1fr;
     grid-template-areas:
         "introduction"
+        "introduction-star"
+        "introduction-binary"
         "controls"
         "graph"
         "data-section"
@@ -127,6 +129,8 @@ main {
         grid-template-columns: 300px 1fr;
         grid-template-areas:
             "introduction introduction"
+	        "introduction-star introduction-star"
+	        "introduction-binary introduction-binary"
             "controls graph"
             "data-section data-section"
             "program-log program-log";
@@ -140,7 +144,18 @@ main {
 #introduction {
     grid-area: introduction;
     justify-self: start;
-    display: none;
+    max-width: var(--max-content-width);
+}
+
+#introduction-star {
+    grid-area: introduction-star;
+    justify-self: start;
+    max-width: var(--max-content-width);
+}
+
+#introduction-binary {
+    grid-area: introduction-binary;
+    justify-self: start;
     max-width: var(--max-content-width);
 }
 
@@ -148,7 +163,6 @@ main {
     grid-area: controls;
     align-self: start;
     min-width: 300px;
-    display: none;
 }
 
 #graph {
@@ -157,7 +171,6 @@ main {
 
     min-width: 700px;
 
-    display: none;
     overflow: visible;
 }
 
@@ -165,13 +178,11 @@ main {
     grid-area: data-section;
     overflow-x: auto;
     overflow-y: hidden;
-    display: none;
 }
 
 #program-log {
     grid-area: program-log;
     justify-self: start;
-    display: none;
 }
 
 h1 {
@@ -364,10 +375,11 @@ select:disabled {
     align-items: flex-start;
 }
 
-#star-size-zoomrange,
-#star-size-zoomvalue,
-#sun-earth-scale,
-#star-size-graph {
+.visible {
+    display: block;
+}
+
+.invisible {
     display: none;
 }
 
@@ -387,4 +399,67 @@ select:disabled {
 
 svg {
     font-size: 0.8rem;
+}
+
+
+.tile-container {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  text-align: center;
+}
+
+.tile-btn {
+  width: 125px;
+  height: 75px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 15px;
+  text-decoration: none;
+
+  background: linear-gradient(160deg, #1D3A57, #34638A, #0f172a);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.1);
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.6),
+    inset 0 0 25px rgba(99,102,241,0.15);
+
+  transition: all 0.3s ease;
+}
+
+.tile-btn:hover {
+  transform: translateY(-10px) scale(1.05);
+
+  box-shadow:
+    0 20px 50px rgba(0,0,0,0.8),
+    0 0 25px rgba(52,99,138,0.8),
+    0 0 50px rgba(29,58,87,0.8);
+}
+
+/* BOTTOM TEXT */
+.tile-bottom {
+  color: #a5b4fc;
+  font-size: 18px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* BIG ICON */
+.tile-icon {
+  font-size: 75px; /* 🔥 much bigger */
+  line-height: 1;
+}
+
+/* TOP TEXT */
+.tile-top {
+  color: #e0e7ff;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
 }

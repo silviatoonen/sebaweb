@@ -1,24 +1,45 @@
 {
-  "seba-main-title": "Battle of the Stars: Science Arena",
+  "seba-main-title": "Battle of the Stars",
   "lang-toggle": "Nederlands",
   "menu-home": "Home",
-  "menu-single": "Single",
+  "menu-single": "Star",
   "menu-binary": "Binary",
-  "introduction": "Introduction",
-  "introduction-text": "<p>Welcome to <strong>Battle of the Stars: Science Arena<\strong> – the place where you get to put the universe in your own hands. Here, everything revolves around <strong>stars, planets, and black holes<\strong>, but in a way that lets you discover, experiment, and play for yourself. <\p>
-  <p>On this site, you can:
-  <ul>
-<li>play with the <br>life story of a single star<\br>: see how it swells up, loses mass, and changes over time</li>
-<li>try out how a star can end up as a <br>white dwarf, neutron star, or black hole<\br></li>
-<li>watch how <br>stars orbit each other<\br></li>
-<li>experiment with <br>orbit size and eccentricity<\\br> (how round or stretched out an orbit is)</li>
-<li>explore what happens when stars get <br>too close to each other<\br></li>
-<li>find out if, and when, <br>a star can “eat” a planet<\br> – and what can go wrong along the way</li>
-  <\ul><\p>
-<p>Battle of the Stars is designed for <br>everyone<\br> who is curious about the universe – you don’t need to be an expert, just a bit interested (and maybe brave enough to play with supernovae and black holes). <br>
-Ready to discover the rules of the universe – and sometimes bend them a little? <br>
-<strong>Start the StarBattle and dive into the cosmos!<\strong><\p>
-<p>SeBa is a software package to simulate the evolution of single and binary stars from the zero-age main-sequence up to and including remnant phases. It is valid for masses in the range 0.01 &ndash; 100 Solar masses with variable metallicity. SeBa includes prescriptions for mass loss by stellar winds, supernova and binary interactions.</p><p>This is an online version, which allows one to run SeBa through the browser; it has limited configuration parameters compared to the stand-alone command-line tool, and can serve as a starting point to learn about stellar (binary) evolution.</p>",
+  "menu-projects": "<a href=\"projects-en.html\"> Projects </a>",
+  "menu-seba": "<a href=\"seba-en.html\"> SeBa </a>",
+  "introduction": "<strong>Welcome to Battle of the Stars</strong>",
+  "introduction-text": [
+	  "<p> This is the place where you get to put the universe in your own hands. Here, everything revolves around <strong>stars, planets, and black holes</strong>, but in a way that lets you discover, experiment, and play for yourself. ",
+	  "In this interactive simulator, you step into the role of an astronomer and explore what happens when stars are born, evolve, and influence each other. <i>Battle of the stars</i> lets you experiment with processes that, in the real universe, take millions of years. By playing with the properties of stars yourself, you discover just how complex and fascinating single and binary stars can be.</p>",
+	  "<p>On this site, you can:   <ul>",
+	  "<li> <b>Build your own star</b> - see how it swells up, loses mass, and changes over time,</li>",
+	  "<li> <b> Play with the life story of a single star</b> - try out how a star can end up as a white dwarf, neutron star, or black hole</li>",
+	  "<li> <b>Watch stars evolve in time</b> - See stars swell up, cool down, lose mass, and interact with companions. What happens if one star gets so big it touches the other? </li>",
+	  "<li> <b>Create your own binary star</b> - Put two stars in orbit around each other. Experiment with orbit size and eccentricity (how round or stretched out an orbit is), and watch how their dance changes. </li>",
+	  "<li> <b>Test <i> 'what if?'</i> scenarios </b> - What if the star was twice as massive? What if the star lives in a binary instead of alone? What happens when stars get too close to each other?</li>",
+	  "<li> <b>See what happens to planets like Earth </b> - Find out if, and when, a star can eat a planet – and what can go wrong along the way</li></ul></p>",
+	  "<p><strong>Start the Battle of the Stars and dive into the cosmos!</strong></p>",
+	  "<h2> Simulator </h2>",
+	  "<p>Behind <i>Battle of the stars</i> runs the same kind of <a href=\"seba-en.html\">computer code</a> that real astronomers use to study stars and binary systems — but you don’t see the code, you get to <b>play with the results</b>. On this website, you change a slider, run the simulation, and <b>see the universe react</b>. Under the hood, you’re controlling serious stellar evolution software; on the screen, you just click, drag, and explore — like a game, but powered by real physics, so you’re using <b>real science without needing to code</b>.</p>"],
+    "introduction-text2": ["<p>Battle of the Stars is designed for <b>everyone</b> who is curious about the universe – you don’t need to be an expert, just a bit interested (and maybe brave enough to play with supernovae and black holes). <b> Ready to discover the rules of the universe – and sometimes bend them a little? </b> </p>",
+	  "<p>Especially for high school students and their teachers, we offer <a href=\"projects-en.html\"> assignments and research ideas </a> that let you explore topics from the physics curriculum (such as gravity, energy, radiation, and the use of models) in a new way. With the simulators you can set up your own experiments, collect data, and make connections – for example for class projects or final research papers. We are also developing a more extensive teaching package around <i>Battle of the Stars </i>, so that teachers can integrate the material into their lessons even more easily. </p>",
+	  "<h2> Contact </h2>",
+	  "<p>This website was developed by Evert Rol and Silvia Toonen as part of the outreach project Sterrestrijd. For questions, comments, or more information, you can contact us at toonen at uva.nl.</p>"],
+  "introduction-star": "<b>Star simulator</b>",
+  "introduction-text-star": ["<p>Here, you can explore the <b>life story of a star</b>: from its birth on the main sequence all the way to its final state as a <b>white dwarf, neutron star, or black hole</b>. You can set the mass anywhere between about 0.01 and 100 times the mass of the Sun, adjust the <b>metallicity</b> (= metal content), and choose how long you want to follow the evolution.</p>",
+  "<p>For reference: our Sun has (by definition) a mass of <b>1 Solar mass</b>, a metallicity of about <b>0.02</b>, and an age of roughly <b>4.6 billion years</b>. The universe itself is about <b>13.8 billion years</b> old. Stars that formed when the universe was young often have a <b>lower metallicity </b>.</p>",
+  "<p>This simulator uses a <b>professional astrophysical computer code named <a href=\"seba-nl.html\">SeBa</a></b> – the same tool researchers work with – but you control everything with a few sliders and clicks.</p>",
+  "<p>Read more about: <a href=\"https://en.wikipedia.org/wiki/Star\">stars</a> and <a href=\"https://en.wikipedia.org/wiki/Stellar_evolution\">stellar evolution</a>. <br> Or watch a video: <a href=\"https://www.youtube.com/watch?v=EFO_bsg1sw8\">1</a>, <a href=\"https://www.youtube.com/watch?v=PM9CQDlQI0A\">2</a>, <a href=\"https://www.youtube.com/watch?v=wKxArKOxhsY\">3</a>, or <a href=\"https://www.youtube.com/watch?v=V69KZun35K8\">4</a>. </p>"],
+  "introduction-binary": "<b>Binary simulator </b>",
+  "introduction-text-binary": ["<p>Imagine the night sky. You see one bright little star shining above you. But appearances can be deceiving: what you see as a single star may in reality be two, dancing around each other. That’s what we call a binary star.</p>",
+  "<h3>What is a binary star?</h3>",
+  "<p>A binary star consists of two stars that are bound together by their gravity. Neither of them is standing still: they both orbit a common center of mass – an imaginary point somewhere between them where the system is in balance. You can think of it like two ice skaters holding each other at arm’s length and spinning together on the ice. They don’t spin around just one of them, but around a point somewhere between them.</p>",
+  "<p>The path a star follows as it orbits around that common point is called its orbit. You can picture the orbit as the kind of trail you’d see if you swung a light around in the dark and took a long-exposure photograph. The orbit can be almost circular, or more stretched out – an oval (in physics: an ellipse). The eccentricity tells us how circular or how “stretched” the orbit is. At high eccentricity, the star comes very close to its companion in one part of the orbit, and is much farther away in another part.</p>",
+  "<p>In a binary star system, two stars can actually exchange material. If one star swells up and its outer layers get close enough, gravity can pull gas from that star onto its companion. This mass transfer is stable if it happens gently and steadily: the donor star loses mass, the companion gains mass, and their orbit usually widens, so they move a bit farther apart. It is unstable if losing mass makes the donor star swell even more, causing a runaway effect where a lot of gas is dumped very quickly. In that case the orbit usually shrinks, the stars plunge closer together, and both end up inside a shared gas layer; this is called common envelope evolution, and it can lead to violent outbursts or even the two stars merging. </p>",
+  "<p>Read more about: <a href=\"https://en.wikipedia.org/wiki/Binary_star\">binaries</a>, <a href=\"https://en.wikipedia.org/wiki/Interacting_binary_star\">interacting binaries</a>, and <a href=\"https://en.wikipedia.org/wiki/Common_envelope\">unstable mass transfer (i.e. common-envelope evolution)</a>. <br>Or watch a video: <a href=\"https://www.youtube.com/watch?v=AnE9EYgXxpU\">1</a>, or <a href=\"https://www.youtube.com/watch?v=pIFiCLhJmig\">2</a>. </p>",
+  "<h3>Simulator</h3>",
+  "<p>Here you can explore the <b>life cycle of a binary star system</b>: two stars orbiting each other and shaping each other’s future. This time you set not one, but <b>two stellar masses</b>, as well as the <b>metallicity</b> (= metal content) and the <b>timespan</b> of the evolution, just like in the single-star simulator.</p>",
+  "<p>In addition, you can define the <b>orbit of the system</b>: the <b>orbital separation</b> (how far apart the stars are on average) and the <b>eccentricity</b> (how circular or elongated the orbit is). This lets you see how close the stars get to each other, when they start to interact, transfer mass, or even merge, and under which conditions <b>supernovae, compact binaries</b>, or <b>black hole pairs</b> can form.</p>",
+  "<p>This simulator also runs on the same <b>professional astrophysical code <a href=\"seba-en.html\">SeBa</a></b> as the single-star module – the tool researchers use to study real binary stars – but you control it with just a few sliders and clicks.</p>"],
   "parameters": "Parameters",
   "mass-name": "Mass of the star",
   "mass1-name": "Mass star 1",
@@ -27,9 +48,9 @@ Ready to discover the rules of the universe – and sometimes bend them a little
   "sep-name": "Separation",
   "time-name": "Time span",
   "metal-name": "Metallicity",
-  "mass-tooltip": "Initial mass of the star",
-  "mass1-tooltip": "Mass of the primary star; this should be larger than or equal to the secondary star.",
-  "mass2-tooltip": "Mass of the secondary star; this should be smaller than or equal to the orimary star.",
+  "mass-tooltip": "Initial mass of the star in Solar mass",
+  "mass1-tooltip": "Mass of the primary star in Solar mass; this should be larger than or equal to the secondary star.",
+  "mass2-tooltip": "Mass of the secondary star in Solar mass; this should be smaller than or equal to the primary star.",
   "ecc-tooltip": "Eccentricity of the elliptical orbit: 0 is completely circular, 0.99 is nearly a straight line.",
   "sep-tooltip": "Separation between the two stars, in Solar radii.",
   "time-tooltip": "Time span of simulation in units of mega-years (= million years)",
@@ -57,11 +78,11 @@ Ready to discover the rules of the universe – and sometimes bend them a little
   "ecc-field": "eccentricity",
   "id-field": "stellar identity number",
   "type-field": "stellar type",
-  "mass-field": "stellar mass in units of Solar mass",
-  "radius-field": "stellar radius in units of Solar radii",
-  "efftemp-field": "effective temperature of the star",
-  "coremass-field": "core mass in units of Solar mass",
-  "lum-field": "luminosity of the star",
+  "mass-field": "stellar mass (unit: Solar mass)",
+  "radius-field": "stellar radius (unit: Solar radii)",
+  "efftemp-field": "effective temperature of the star (unit: Kelvin)",
+  "coremass-field": "core mass (unit: Solar mass)",
+  "lum-field": "luminosity of the star (unit: Solar luminosity)",
   "id1-field": "stellar identity number 1",
   "type1-field": "star type 1",
   "mass1-field": "stellar mass in Solar mass 1",
