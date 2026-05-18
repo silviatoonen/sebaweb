@@ -5,7 +5,7 @@
     <title>Battle of the Stars</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="base.css" />
-    <script src="base.js" type="module"></script>
+    <script src="langtheme.js" type="module"></script>
   </head>
   <body>
     <header id="header">
@@ -19,6 +19,16 @@
             <li><a href="seba-en.html">SeBa</a></li>
           </ul>
         </div>
+        <select id="lang-switch" name="lang">
+          <option value="nl" data-url="projects-nl.html">🇳🇱 NL</option>
+          <option value="en" data-url="projects-en.html" selected>🇬🇧 En</option>
+        </select>
+
+        <select id="theme-switch" name="theme">
+          <option value="system" selected>🌗 System</option>
+          <option value="light">☀️ Light</option>
+          <option value="dark">🌙 Dark</option>
+        </select>
       </nav>
       <div id="banner">
         <h1>Battle of the Stars</h1>

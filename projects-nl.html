@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="nl">
   <head>
     <meta charset="UTF-8" />
     <title>Sterrestrijd</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="base.css" />
-    <script src="base.js" type="module"></script>
+    <script src="langtheme.js" type="module"></script>
   </head>
   <body>
     <header id="header">
@@ -20,6 +20,16 @@
 
           </ul>
         </div>
+        <select id="lang-switch" name="lang">
+          <option value="nl" data-url="projects-nl.html" selected>🇳🇱 NL</option>
+          <option value="en" data-url="projects-en.html" >🇬🇧 En</option>
+        </select>
+
+        <select id="theme-switch" name="theme">
+          <option value="system" selected>🌗 System</option>
+          <option value="light">☀️ Light</option>
+          <option value="dark">🌙 Dark</option>
+        </select>
       </nav>
       <div id="banner">
         <h1>Sterrestrijd</h1>
@@ -41,8 +51,8 @@
 
 
 <h3> Over sterren </h3>
-<ul>  
-<li><strong>Welke ster evolueert het snelst?</strong><br> 
+<ul>
+<li><strong>Welke ster evolueert het snelst?</strong><br>
 <em>Onderzoeksvraag:</em> Hoe beïnvloedt de massa van een ster de snelheid van zijn evolutie?<br>
 <em>Werkwijze:</em> Maak sterren met verschillende beginmassa’s en laat ze evolueren. Noteer hoe snel ze door de evolutiestadia gaan. Welke ster verandert het snelst?<br>
 <em>Verdieping:</em> Verdiep je in de theorie achter levensduur en lichtkracht van sterren. Onderzoek hoe massa de evolutiesnelheid beïnvloedt en of dit overeenkomt met je simulatie. </li>
@@ -74,17 +84,17 @@
 
 <h3> Over dubbelsterren </h3>
 <ul>
-<li> <strong>Hoe verandert evolutie in een dubbelstersysteem?</strong><br> 
-<em>Onderzoeksvraag:</em> Hoe beïnvloedt massaoverdracht de evolutie van een ster in een dubbelster?<br> 
-<em>Werkwijze:</em> Vergelijk een ster in isolatie met dezelfde ster in een dubbelster. Noteer verschillen in evolutiesnelheid en eindmassa.<br> 
+<li> <strong>Hoe verandert evolutie in een dubbelstersysteem?</strong><br>
+<em>Onderzoeksvraag:</em> Hoe beïnvloedt massaoverdracht de evolutie van een ster in een dubbelster?<br>
+<em>Werkwijze:</em> Vergelijk een ster in isolatie met dezelfde ster in een dubbelster. Noteer verschillen in evolutiesnelheid en eindmassa.<br>
 <em>Verdieping:</em> Onderzoek hoe het vullen van de Roche-lob en massaoverdracht de levensduur en lichtkracht beïnvloeden. </li>
- <li> <strong>Hoe beïnvloedt afstand een dubbelstersysteem?</strong><br> 
+ <li> <strong>Hoe beïnvloedt afstand een dubbelstersysteem?</strong><br>
 <em>Onderzoeksvraag:</em> Wat gebeurt er met de banen en interacties van twee sterren als ze dichter bij elkaar staan?<br>
-<em>Werkwijze:</em> Maak dubbelstersystemen met dezelfde massa’s maar verschillende afstanden. Observeer hoe banen en interacties veranderen. Wanneer treedt massaoverdracht op?<br> 
+<em>Werkwijze:</em> Maak dubbelstersystemen met dezelfde massa’s maar verschillende afstanden. Observeer hoe banen en interacties veranderen. Wanneer treedt massaoverdracht op?<br>
 <em>Verdieping:</em> Onderzoek de rol van interacties en de <span style="white-space:nowrap;">Roche-lob</span> en hoe deze bepaalt wanneer massaverlies begint. </li>
-<li> <strong>Welke dubbelsterren smelten samen?</strong><br> 
-<em>Onderzoeksvraag:</em> In het heelal leiden samensmeltingen tot heldere uitbarstingen die we in grote getalen waarnemen. Welke dubbelstersystemen zijn vatbaar voor samensmelting?<br> 
-<em>Werkwijze:</em> Maak dubbelstersystemen met verschillende massa’s en afstanden. Observeer welke systemen samensmelten en in welke fase van hun evolutie.<br> 
+<li> <strong>Welke dubbelsterren smelten samen?</strong><br>
+<em>Onderzoeksvraag:</em> In het heelal leiden samensmeltingen tot heldere uitbarstingen die we in grote getalen waarnemen. Welke dubbelstersystemen zijn vatbaar voor samensmelting?<br>
+<em>Werkwijze:</em> Maak dubbelstersystemen met verschillende massa’s en afstanden. Observeer welke systemen samensmelten en in welke fase van hun evolutie.<br>
 <em>Verdieping:</em> Onderzoek de rol van massaoverdracht, Roche-lobe en interacties bij samensmelting. </li>
 <li><strong>Bouw je zwaarste zwarte gat</strong><br>
 <em>Onderzoeksvraag:</em> Hoe hangen de massa van een ster en haar metalliciteit samen met de massa van het zwarte gat dat uiteindelijk overblijft? Tip: kijk vooral naar het effect van metalliciteit op massaverlies door sterrewinden.<br>
@@ -95,38 +105,38 @@
   <em>Onderzoeksvraag:</em> Wat is de laagste massa van een witte dwerg die je kunt maken uit een enkele ster, en kun je nog lichtere witte dwergen maken in dubbelsterren door met de baan te spelen?<br>
   <em>Werkwijze:</em> Maak eerst enkele sterren met verschillende beginmassa’s en laat ze evolueren tot witte dwergen. Noteer de laagste witte-dwergmassa die je zo kunt bereiken. Onderzoek daarna dubbelsterren: varieer de baaneigenschappen (zoals de baanscheiding) en kijk of je daardoor sterren eerder hun buitenlagen kunt laten verliezen, zodat er <strong>lichtere witte dwergen</strong> ontstaan.<br>
   <em>Verdieping:</em> Kijk naar de chemische samenstelling van de witte dwergen die je maakt (bijvoorbeeld helium-, koolstof-zuurstof- of zuurstof-neon-magnesium-witte dwergen). Onderzoek bij welke beginmassa’s, metalliciteiten en in welke (dubbelster)situaties deze verschillende typen ontstaan, en leg uit waarom de samenstelling samenhangt met de evolutiegeschiedenis van de ster.</li>
-<li> <strong>Kun je een supernova Type Ia maken?</strong><br> 
-<em>Onderzoeksvraag:</em> Supernovae Type Ia zijn extreem heldere uitbarstingen waarmee we afstanden en de uitdijing van het heelal kunnen meten. Hoe kan een witte dwerg zo zwaar worden dat hij zijn maximale massa overschrijdt (1.44 Zonsmassa) en explodeert?<br> 
-<em>Werkwijze:</em> Maak een binary met een witte dwerg en onderzoek twee scenario’s: massaoverdracht van een begeleidende ster of samensmelting met een andere witte dwerg. Noteer bij welke combinaties de witte dwerg zijn kritische massa bereikt.<br> 
+<li> <strong>Kun je een supernova Type Ia maken?</strong><br>
+<em>Onderzoeksvraag:</em> Supernovae Type Ia zijn extreem heldere uitbarstingen waarmee we afstanden en de uitdijing van het heelal kunnen meten. Hoe kan een witte dwerg zo zwaar worden dat hij zijn maximale massa overschrijdt (1.44 Zonsmassa) en explodeert?<br>
+<em>Werkwijze:</em> Maak een binary met een witte dwerg en onderzoek twee scenario’s: massaoverdracht van een begeleidende ster of samensmelting met een andere witte dwerg. Noteer bij welke combinaties de witte dwerg zijn kritische massa bereikt.<br>
 <em>Verdieping:</em> Verdiep je in de Chandrasekhar-massa en waarom deze limiet bepaalt wanneer een witte dwerg explodeert tot een Type Ia supernova. </li>
-<li> <strong>Kun je een bron van gravitatiegolven maken?</strong><br> 
-<em>Onderzoeksvraag:</em> Sinds 2015 kunnen we gravitatiegolven detecteren. Welke dubbelstersystemen van compacte objecten kunnen zulke signalen geven?<br> 
-<em>Werkwijze:</em> Maak dubbelstersystemen van witte dwergen, neutronensterren of zwarte gaten en laat ze evolueren. Noteer welke systemen dicht genoeg en korte genoeg banen hebben om gravitatiegolven uit te zenden.<<em>Hint:</em> Voor de LVK-detectpr zijn baanperiodes vaak uren tot minuten, voor de LISA-detector dagen tot maanden.<br> 
-<em>Verdieping:</em> Onderzoek hoe massa, afstand en baangrootte de sterkte van het signaal beïnvloedt. </li>		
-<li> <strong>Hoe oud is een sterrencluster?</strong><br> 
-<em>Onderzoeksvraag:</em> Een sterrencluster is een groep sterren die samen zijn ontstaan en ongeveer dezelfde leeftijd hebben. Hoe kun je de leeftijd van zo’n cluster inschatten met een simulatie?<br> 
-<em>Werkwijze:</em> Maak meerdere sterren van verschillende massa’s die samen een cluster vormen. Laat ze evolueren en noteer in welke evolutiefase de meest massieve sterren zich bevinden. Gebruik dit om een schatting te maken van de leeftijd van het cluster.<br> 
+<li> <strong>Kun je een bron van gravitatiegolven maken?</strong><br>
+<em>Onderzoeksvraag:</em> Sinds 2015 kunnen we gravitatiegolven detecteren. Welke dubbelstersystemen van compacte objecten kunnen zulke signalen geven?<br>
+<em>Werkwijze:</em> Maak dubbelstersystemen van witte dwergen, neutronensterren of zwarte gaten en laat ze evolueren. Noteer welke systemen dicht genoeg en korte genoeg banen hebben om gravitatiegolven uit te zenden.<<em>Hint:</em> Voor de LVK-detectpr zijn baanperiodes vaak uren tot minuten, voor de LISA-detector dagen tot maanden.<br>
+<em>Verdieping:</em> Onderzoek hoe massa, afstand en baangrootte de sterkte van het signaal beïnvloedt. </li>
+<li> <strong>Hoe oud is een sterrencluster?</strong><br>
+<em>Onderzoeksvraag:</em> Een sterrencluster is een groep sterren die samen zijn ontstaan en ongeveer dezelfde leeftijd hebben. Hoe kun je de leeftijd van zo’n cluster inschatten met een simulatie?<br>
+<em>Werkwijze:</em> Maak meerdere sterren van verschillende massa’s die samen een cluster vormen. Laat ze evolueren en noteer in welke evolutiefase de meest massieve sterren zich bevinden. Gebruik dit om een schatting te maken van de leeftijd van het cluster.<br>
 <em>Verdieping:</em> Verdiep je in de rol van de <i>turn-off point</i> in het <i>Hertzsprung-Russel-diagram</i> en hoe dit wordt gebruikt om de leeftijd van echte sterrenclusters te bepalen. </li>
 </ul>
 
 
 <h3> Over exoplaneten </h3>
 <ul>
-<li> <strong>Wat gebeurt er met de aarde als de zon evolueert?</strong><br> 
-<em>Onderzoeksvraag:</em> Hoe verandert de baan van de aarde en andere planeten als de zon ouder wordt en een rode reus wordt?<br> 
-<em>Werkwijze:</em> Simuleer een voor een de zon met planeten van het zonnestelsel. Laat de zon evolueren en observeer hoe de banen van de planeten veranderen. Noteer welke planeten dichterbij komen, verder weg gaan of gevaar lopen om opgeslokt te worden.<br> 
+<li> <strong>Wat gebeurt er met de aarde als de zon evolueert?</strong><br>
+<em>Onderzoeksvraag:</em> Hoe verandert de baan van de aarde en andere planeten als de zon ouder wordt en een rode reus wordt?<br>
+<em>Werkwijze:</em> Simuleer een voor een de zon met planeten van het zonnestelsel. Laat de zon evolueren en observeer hoe de banen van de planeten veranderen. Noteer welke planeten dichterbij komen, verder weg gaan of gevaar lopen om opgeslokt te worden.<br>
 <em>Verdieping:</em> Verdiep je in de fase van de rode reus en hoe massaverlies van de zon de banen beïnvloedt. Welke fysische processen bepalen het lot van de planeten? </li>
-<li><strong>Kun je een planeet “opeten”?</strong><br> 
-<em>Onderzoeksvraag:</em> Onder welke omstandigheden kan een ster een nabije planeet opslokken?<br> 
-<em>Werkwijze:</em> Maak een systeem met een ster en een planeet dichtbij. Varieer de afstand en massa van de planeet. Observeer hoe de baan verandert en wanneer de planeet dicht genoeg komt om door de ster te worden opgeslokt.<br> 
+<li><strong>Kun je een planeet “opeten”?</strong><br>
+<em>Onderzoeksvraag:</em> Onder welke omstandigheden kan een ster een nabije planeet opslokken?<br>
+<em>Werkwijze:</em> Maak een systeem met een ster en een planeet dichtbij. Varieer de afstand en massa van de planeet. Observeer hoe de baan verandert en wanneer de planeet dicht genoeg komt om door de ster te worden opgeslokt.<br>
 <em>Verdieping:</em> Onderzoek de rol van getijdenkrachten, Roche-lob en stralingsdruk. Waarom is het voor kleinere planeten moeilijker om dicht bij een ster te overleven dan voor grotere planeten? </li>
-<li> <strong> Hoe beïnvloeden planeten de evolutie van een ster?</strong><br> 
-<em>Onderzoeksvraag:</em> Kunnen zware planeten of gasreuzen hun ster beïnvloeden?<br> 
-<em>Werkwijze:</em> Voeg een zware planeet of meerdere planeten toe rond een ster in de simulatie. Observeer hoe de banen van de planeten veranderen en of dit effect heeft op de buitenlagen van de ster.<br> 
+<li> <strong> Hoe beïnvloeden planeten de evolutie van een ster?</strong><br>
+<em>Onderzoeksvraag:</em> Kunnen zware planeten of gasreuzen hun ster beïnvloeden?<br>
+<em>Werkwijze:</em> Voeg een zware planeet of meerdere planeten toe rond een ster in de simulatie. Observeer hoe de banen van de planeten veranderen en of dit effect heeft op de buitenlagen van de ster.<br>
 <em>Verdieping:</em> Verdiep je in hoe massa en nabijheid van planeten invloed kunnen hebben op sterwinden of kleine variaties in lichtkracht.</li>
 <li> <strong>Supernova-impact op nabije planeten</strong><br>
-<em>Onderzoeksvraag:</em> Wat gebeurt er met planeten als hun ster explodeert als supernova?<br> 
-<em>Werkwijze:</em> Plaats planeten op verschillende afstanden van een ster die een supernova ondergaat. Observeer welke planeten overleven, welke banen veranderen of opgeslokt worden.<br> 
+<em>Onderzoeksvraag:</em> Wat gebeurt er met planeten als hun ster explodeert als supernova?<br>
+<em>Werkwijze:</em> Plaats planeten op verschillende afstanden van een ster die een supernova ondergaat. Observeer welke planeten overleven, welke banen veranderen of opgeslokt worden.<br>
 <em>Verdieping:</em> Relateer dit aan echte waarnemingen van nabije supernova’s en onderzoek de mogelijke effecten op levensvatbare zones en het ontstaan van zware elementen.</li>
 </ul>
 
