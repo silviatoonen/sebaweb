@@ -25,6 +25,10 @@ export const DATAFIELDS = [
 // These need to match the names in DATAFIELDS
 export const USERDATAFIELDS = [
     "time",
+    "transfertype",
+    "period", // orbital period in days, calculated from the separation and the masses (base.js)
+    "sep",
+    "ecc",
     "type1",
     "mass1",
     "radius1",
@@ -37,9 +41,6 @@ export const USERDATAFIELDS = [
     "efftemp2",
     "coremass2",
     "lum2",
-    "transfertype",
-    "sep",
-    "ecc",
 ];
 
 export const CONTROLS = {

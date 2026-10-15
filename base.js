@@ -1,15 +1,17 @@
-import createSeBaDefault from "./seba_default.js";
+// SeBa online – base.js, version 18 (language buttons, no theme switch, star movie)
+// Both simulators use the SeBa build with the finer time output ("hirestime"): it gives the same
+// physics as the default build, but many more rows, so the graphs, the table and the movie are smoother.
+// (The single-star simulator runs it as a binary with a very wide orbit and a light companion.)
 import createSeBaHires from "./seba_hirestime.js";
 import * as C_S from "./constants-single.js";
-import * as C_B from "./constants-binary.js";
-import { starColor } from "./colors.js";
+import * as C_B from "./constants-binary.js?v=2";
 
 const params = new URLSearchParams(window.location.search);
 const VARIANT = params.get("variant");
 const DEBUG = params.get("debug") == "debug";
 
 const CONST = VARIANT == "single" ? C_S : C_B;
-const createSeBa = VARIANT == "single" ? createSeBaHires : createSeBaDefault;
+const createSeBa = createSeBaHires;
 
 /* Physics constants */
 const SIGMA_SB = 5.670374419e-8;
@@ -24,7 +26,7 @@ const INPUTTIMEOUT = 500;
 
 const GRAPHDEFAULTS = {
     x: "time",
-    y: VARIANT == "single" ? "mass" : "mass1",
+    y: VARIANT == "single" ? "radius" : "mass1",
 };
 
 const GRAPH_SCALES = {
@@ -35,19 +37,19 @@ const GRAPH_SCALES = {
 };
 
 const PLOTLY_DARK_MODE = {
-    paper_bgcolor: "#1a1a1a",
-    plot_bgcolor: "#222",
-    font: { color: "#f0f0f0" },
-    xaxis: { color: "#f0f0f0", gridcolor: "#444", zerolinecolor: "#555" },
-    yaxis: { color: "#f0f0f0", gridcolor: "#444", zerolinecolor: "#555" },
+    paper_bgcolor: "#141c33",
+    plot_bgcolor: "#0c1224",
+    font: { family: "Instrument Sans, system-ui, sans-serif", color: "#e8ecf5" },
+    xaxis: { color: "#e8ecf5", gridcolor: "#26314d", zerolinecolor: "#34436b" },
+    yaxis: { color: "#e8ecf5", gridcolor: "#26314d", zerolinecolor: "#34436b" },
 };
 
-// Starting sizes in pixels
-const SIZES = {
-    earth: 10 / 109,
-    sun: 10,
-    star: 0,
-    star2: 0,
+const PLOTLY_LIGHT_MODE = {
+    paper_bgcolor: "#ffffff",
+    plot_bgcolor: "#f5f7fa",
+    font: { family: "Instrument Sans, system-ui, sans-serif", color: "#14213d" },
+    xaxis: { color: "#14213d", gridcolor: "#dbe1ea", zerolinecolor: "#b9c6e4" },
+    yaxis: { color: "#14213d", gridcolor: "#dbe1ea", zerolinecolor: "#b9c6e4" },
 };
 
 // Supported languages with a translation file
@@ -78,13 +80,23 @@ function $create(element) {
 let translations = {};
 let fileContent = "";
 let data = {};
-let rafid = null;
+let rawTypes = {}; // the stellar types as numbers, before translateTypes() turns them into text
+let movie = null; // the star movie (single-star simulator only)
+
+// The columns of the table: in the binary simulator the type of mass transfer comes second
+function tableFields() {
+    const fields = CONST.USERDATAFIELDS.filter((f) => f !== "transfertype");
+    if (VARIANT != "single") {
+        fields.splice(1, 0, "transfertype");
+    }
+    return fields;
+}
 
 function updateTableHeader() {
     const lang = document.documentElement.lang;
     const translation = translations[lang];
     let ths = [];
-    for (const col of CONST.USERDATAFIELDS) {
+    for (const col of tableFields()) {
         const key = `${col}-field`;
         const th = $create("th");
         let name = "";
@@ -183,6 +195,224 @@ function createControls() {
     }
 }
 
+// ===== the companion in the binary simulator: a star or a planet =====
+// SeBa also follows planets. For a planet the mass is given in Earth masses
+// (0.05 Earth masses to 100 Jupiter masses) and passed on to SeBa in solar masses.
+const EARTH_MASS = 1 / 332946; // one Earth mass, in solar masses
+const JUPITER_MASS = 317.83; // one Jupiter mass, in Earth masses
+const COMPANION = {
+    star: null, // filled in with the values from constants-binary.js
+    planet: { min: 0.05, max: 100 * JUPITER_MASS, value: 1, step: 0.01, prec: 2, log: true },
+};
+let companion = "star";
+
+function createCompanionSwitch() {
+    const ctl = $id("mass2-control");
+    if (!ctl) {
+        return;
+    }
+    COMPANION.star = { ...CONST.CONTROLS.mass2 };
+    const box = $create("div");
+    box.className = "companion";
+    box.id = "companion-switch";
+    box.innerHTML = `<span class="companion-label" data-i8n="companion-label"></span>
+        <div class="seg" role="group">
+          <button type="button" data-companion="star" aria-pressed="true" data-i8n="companion-star"></button>
+          <button type="button" data-companion="planet" aria-pressed="false" data-i8n="companion-planet"></button>
+        </div>`;
+    ctl.prepend(box); // at the top of the card of the mass of star 2
+    box.querySelectorAll("button").forEach((button) =>
+        button.addEventListener("click", () => setCompanion(button.dataset.companion, true)),
+    );
+    // for a planet: the mass in Jupiter masses as well
+    const hint = $create("p");
+    hint.id = "mass2-hint";
+    hint.className = "unit-hint";
+    hint.hidden = true;
+    ctl.append(hint);
+    $id("mass2-input").addEventListener("input", updateMass2Hint);
+    $id("mass2-range").addEventListener("input", updateMass2Hint);
+}
+
+function setCompanion(kind, run = false) {
+    if (!(kind in COMPANION) || !COMPANION.star) {
+        return;
+    }
+    const input = $id("mass2-input");
+    const slider = $id("mass2-range");
+    // remember the value that was chosen, for when you switch back
+    const now = parseFloat(input.value);
+    if (!isNaN(now)) {
+        COMPANION[companion].value = now;
+    }
+    companion = kind;
+    const c = COMPANION[kind];
+    Object.assign(CONST.CONTROLS.mass2, c);
+    input.min = c.min;
+    input.max = c.max;
+    input.dataset.prec = c.prec;
+    input.value = c.value;
+    slider.min = Math.log10(c.min);
+    slider.max = Math.log10(c.max);
+    slider.value = Math.log10(c.value);
+    const planet = kind === "planet";
+    const name = $q("#mass2-control label [data-i8n]");
+    name.dataset.i8n = planet ? "mass2p-name" : "mass2-name";
+    name.innerHTML = _t(name.dataset.i8n);
+    const tip = $q("#mass2-tooltip span");
+    tip.dataset.i8n = planet ? "mass2p-tooltip" : "mass2-tooltip";
+    tip.innerHTML = _t(tip.dataset.i8n);
+    $id("mass2-min-value").textContent = planet ? `0.05 ${_t("earth-short")}` : c.min;
+    $id("mass2-max-value").textContent = planet ? `100 ${_t("jupiter-short")}` : c.max;
+    document.querySelectorAll("#companion-switch button").forEach((button) =>
+        button.setAttribute("aria-pressed", button.dataset.companion === kind ? "true" : "false"),
+    );
+    updateMass2Hint();
+    updateSepHint();
+    if (run && $id("direct-update").checked) {
+        runSeba();
+    }
+}
+
+function updateMass2Hint() {
+    const hint = $id("mass2-hint");
+    if (!hint) {
+        return;
+    }
+    hint.hidden = companion !== "planet";
+    const v = parseFloat($id("mass2-input").value);
+    if (companion === "planet" && !isNaN(v)) {
+        const lang = document.documentElement.lang === "en" ? "en" : "nl";
+        const mj = (v / JUPITER_MASS).toLocaleString(lang, { maximumSignificantDigits: 2 });
+        hint.textContent = `≈ ${mj} ${_t("jupiter-masses")}`;
+    }
+}
+
+// The mass of star 2 as SeBa wants it: in solar masses
+function mass2ForSeba() {
+    const value = $id("mass2-input").value.trim();
+    if (companion !== "planet") {
+        return value;
+    }
+    return String(parseFloat(value) * EARTH_MASS);
+}
+
+// ===== the orbit in the binary simulator: give the separation or the orbital period =====
+// The period (in days) is turned into a separation with Kepler's third law, using the two masses:
+// a [AU] = (P [yr]^2 * (M1 + M2))^(1/3), with 1 AU = 215.032 solar radii.
+const ORBIT = {
+    sep: null, // filled in with the values from constants-binary.js
+    period: { min: 0.01, max: 1e7, value: 100, step: 0.01, prec: 2, log: true },
+};
+let orbitMode = "sep";
+
+function totalMass() {
+    const m1 = parseFloat($id("mass1-input").value);
+    let m2 = parseFloat($id("mass2-input").value);
+    if (companion === "planet") {
+        m2 *= EARTH_MASS;
+    }
+    return (m1 > 0 ? m1 : 0) + (m2 > 0 ? m2 : 0);
+}
+const periodFromSep = (a, M) => 365.25 * Math.sqrt((a / 215.032) ** 3 / M);
+const sepFromPeriod = (P, M) => 215.032 * ((P / 365.25) ** 2 * M) ** (1 / 3);
+
+function createOrbitSwitch() {
+    const ctl = $id("sep-control");
+    if (!ctl) {
+        return;
+    }
+    ORBIT.sep = { ...CONST.CONTROLS.sep };
+    const box = $create("div");
+    box.className = "companion";
+    box.id = "orbit-switch";
+    box.innerHTML = `<span class="companion-label" data-i8n="orbit-label"></span>
+        <div class="seg" role="group">
+          <button type="button" data-orbit="sep" aria-pressed="true" data-i8n="orbit-sep"></button>
+          <button type="button" data-orbit="period" aria-pressed="false" data-i8n="orbit-period"></button>
+        </div>`;
+    ctl.prepend(box);
+    box.querySelectorAll("button").forEach((button) =>
+        button.addEventListener("click", () => setOrbitMode(button.dataset.orbit, true)),
+    );
+    // in period mode: the separation that goes with it
+    const hint = $create("p");
+    hint.id = "sep-hint";
+    hint.className = "unit-hint";
+    hint.hidden = true;
+    ctl.append(hint);
+    for (const id of ["sep", "mass1", "mass2"]) {
+        $id(`${id}-input`).addEventListener("input", updateSepHint);
+        $id(`${id}-range`).addEventListener("input", updateSepHint);
+    }
+}
+
+function setOrbitMode(kind, run = false) {
+    if (!(kind in ORBIT) || !ORBIT.sep || kind === orbitMode) {
+        return;
+    }
+    const input = $id("sep-input");
+    const slider = $id("sep-range");
+    // keep the same orbit: turn the separation into a period, or the other way round
+    const now = parseFloat(input.value);
+    const M = totalMass();
+    const c = ORBIT[kind];
+    let value = c.value;
+    if (!isNaN(now) && M > 0) {
+        value = kind === "period" ? periodFromSep(now, M) : sepFromPeriod(now, M);
+    }
+    value = Math.min(c.max, Math.max(c.min, value));
+    orbitMode = kind;
+    Object.assign(CONST.CONTROLS.sep, c);
+    input.min = c.min;
+    input.max = c.max;
+    input.dataset.prec = c.prec;
+    input.value = value.toFixed(c.prec);
+    slider.min = Math.log10(c.min);
+    slider.max = Math.log10(c.max);
+    slider.value = Math.log10(value);
+    const period = kind === "period";
+    const name = $q("#sep-control label [data-i8n]");
+    name.dataset.i8n = period ? "periodin-name" : "sep-name";
+    name.innerHTML = _t(name.dataset.i8n);
+    const tip = $q("#sep-tooltip span");
+    tip.dataset.i8n = period ? "periodin-tooltip" : "sep-tooltip";
+    tip.innerHTML = _t(tip.dataset.i8n);
+    $id("sep-min-value").textContent = c.min;
+    $id("sep-max-value").textContent = c.max;
+    document.querySelectorAll("#orbit-switch button").forEach((button) =>
+        button.setAttribute("aria-pressed", button.dataset.orbit === kind ? "true" : "false"),
+    );
+    updateSepHint();
+    if (run && $id("direct-update").checked) {
+        runSeba();
+    }
+}
+
+function updateSepHint() {
+    const hint = $id("sep-hint");
+    if (!hint) {
+        return;
+    }
+    hint.hidden = orbitMode !== "period";
+    const P = parseFloat($id("sep-input").value);
+    const M = totalMass();
+    if (orbitMode === "period" && P > 0 && M > 0) {
+        const lang = document.documentElement.lang === "en" ? "en" : "nl";
+        const a = sepFromPeriod(P, M).toLocaleString(lang, { maximumSignificantDigits: 3 });
+        hint.textContent = `≈ ${a} ${_t("unit-sep")} ${_t("orbit-hint")}`;
+    }
+}
+
+// The separation as SeBa wants it: in solar radii
+function sepForSeba() {
+    const value = $id("sep-input").value.trim();
+    if (orbitMode !== "period") {
+        return value;
+    }
+    return String(sepFromPeriod(parseFloat(value), totalMass()));
+}
+
 function updateMinMax() {
     for (const label of $qa("form#user-input label")) {
         const name = label.name;
@@ -203,7 +433,7 @@ function updateMinMax() {
 async function loadTranslations() {
     for (const lang of LANGUAGES) {
         try {
-            const response = await fetch(`${lang}.json`);
+            const response = await fetch(`${lang}.json?v=5`); // ?v: load the new texts after a change
 
             if (!response.ok) {
                 throw new Error(`Could not fetch ${lang}.json`);
@@ -236,12 +466,24 @@ function updatePlotOptions() {
     }
 }
 
+// Show only the labels (menu, footer) written for the chosen language,
+// and mark the active language button
+function setLabels(lang) {
+    document.querySelectorAll("[data-l]").forEach((element) => {
+        element.hidden = element.dataset.l !== lang;
+    });
+    document.querySelectorAll(".lang button").forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.lang === lang ? "true" : "false");
+    });
+}
+
 function switchLang(lang) {
     document.documentElement.lang = lang;
     if (!(lang in translations)) {
         lang = FALLBACK_LANG;
     }
     localStorage.setItem("lang", lang);
+    setLabels(lang);
     const translation = translations[lang];
     const elements = document.querySelectorAll("[data-i8n]");
     for (const element of elements) {
@@ -274,21 +516,15 @@ function switchLang(lang) {
 
     updateTableHeader();
     updatePlotOptions();
-}
-
-// Update HTML data-theme attribute for use in the CSS
-// and replot if there was a theme switch
-function switchTheme(theme) {
-    if (theme === "system") {
-        delete document.documentElement.dataset.theme;
-    } else {
-        document.documentElement.dataset.theme = theme;
-    }
-    localStorage.setItem("theme", theme);
-
     if (Object.keys(data).length) {
         plot();
     }
+    if (movie) {
+        movie.refreshLabels();
+    }
+    updateMass2Hint();
+    updateSepHint();
+    document.title = _t("seba-main-title") || document.title;
 }
 
 function updateFromSlider(slider) {
@@ -367,6 +603,73 @@ function _t(key) {
     return string;
 }
 
+// The star movie: draws the result of a single-star run as an animation (see star-movie.js)
+async function initMovie() {
+    try {
+        const { StarMovie, BinaryMovie } = await import("./star-movie.js?v=27");
+        // show the movie area first, so that the canvas can measure its size
+        $id("star-movie").classList.replace("invisible", "visible");
+        $id("gif-space").classList.add("invisible");
+        const Movie = VARIANT == "single" ? StarMovie : BinaryMovie;
+        movie = new Movie({
+            canvas: $id("star-canvas"),
+            playButton: $id("movie-play"),
+            replayButton: $id("movie-replay"),
+            slider: $id("movie-slider"),
+            speedSelect: $id("movie-speed"),
+            downloadButton: $id("movie-download"),
+            onState: scheduleDot,
+            t: _t,
+            // the photo of the Crab Nebula is optional; when it is there, show who made it
+            onCrabLoaded: () => $id("movie-credit").classList.replace("invisible", "visible"),
+            // the same for the photo of the Helix Nebula (only used in the binary movie)
+            onHelixLoaded: () => {
+                if (VARIANT != "single" && $id("movie-credit-helix")) {
+                    $id("movie-credit-helix").classList.replace("invisible", "visible");
+                }
+            },
+        });
+        updateMovie();
+    } catch (error) {
+        console.warn("The movie is not available:", error);
+    }
+}
+
+function movieRows() {
+    if (VARIANT != "single") {
+        return {
+            time: data["time"],
+            sep: data["sep"],
+            ecc: data["ecc"],
+            bintype: rawTypes["bintype"],
+            tt: rawTypes["transfertype"],
+            m1: data["mass1"],
+            r1: data["radius1"],
+            T1: data["efftemp1"],
+            ty1: rawTypes["type1"],
+            m2: data["mass2"],
+            r2: data["radius2"],
+            T2: data["efftemp2"],
+            ty2: rawTypes["type2"],
+        };
+    }
+    const pick = (a, b) => data[a] ?? data[b];
+    return {
+        time: data["time"],
+        radius: pick("radius", "radius1"),
+        teff: pick("efftemp", "efftemp1"),
+        mass: pick("mass", "mass1"),
+        type: rawTypes["type"] ?? rawTypes["type1"],
+    };
+}
+
+// (Re)make the movie from the data of the latest run
+function updateMovie() {
+    if (movie && Object.keys(data).length) {
+        movie.load(movieRows());
+    }
+}
+
 // Run SeBa
 async function runSeba() {
     $id("start-button").disabled = true;
@@ -404,11 +707,11 @@ async function runSeba() {
                   "-M",
                   $id("mass1-input").value.trim(),
                   "-m",
-                  $id("mass2-input").value.trim(),
+                  mass2ForSeba(),
                   "-e",
                   $id("ecc-input").value.trim(),
                   "-a",
-                  $id("sep-input").value.trim(),
+                  sepForSeba(),
                   "-T",
                   $id("time-input").value.trim(),
                   "-z",
@@ -442,13 +745,14 @@ async function runSeba() {
         readData();
 
         $id("download-data").disabled = false;
+        $id("download-data-excel").disabled = false;
         // Enable graph options
         $id("graph-style").disabled = false;
         $id("x-axis").disabled = false;
         $id("y-axis").disabled = false;
-        $id("show-size").disabled = false;
         populateTable();
         plot();
+        updateMovie();
     } catch (error) {
         appendOutput(`Could not read SeBa.data: ${error}`, true);
     }
@@ -466,6 +770,12 @@ function translateTypes() {
                 const value = data[name][index];
                 const key = `type-${value}`;
                 data[name][index] = _t(key);
+            }
+        }
+        if (name === "transfertype") {
+            for (let index in data[name]) {
+                const value = data[name][index];
+                data[name][index] = _t(`transfertype-${value}`) || value;
             }
         }
         if (name === "bintype") {
@@ -495,6 +805,13 @@ function readData() {
     data = {};
     CONST.DATAFIELDS.forEach((name, index) => {
         data[name] = array[index];
+    });
+
+    rawTypes = {};
+    CONST.DATAFIELDS.forEach((name) => {
+        if (name.startsWith("type") || name === "bintype" || name === "transfertype") {
+            rawTypes[name] = data[name].slice();
+        }
     });
 
     translateTypes(); // translate the *type columns
@@ -529,13 +846,26 @@ function readData() {
                 data["efftemp2"][i] ** 4) /
             L_SUN,
     );
+
+    // Binary: the orbital period in days, from the separation and the two masses (Kepler's third law:
+    // P in years = sqrt(a^3 / M) with a in AU and M in solar masses; 1 AU = 215.032 solar radii).
+    // After a merger (separation 0) the period is 0 as well.
+    if (VARIANT != "single") {
+        data["period"] = data["sep"].map((a, i) => {
+            const M = data["mass1"][i] + data["mass2"][i];
+            if (!(a > 0) || !(M > 0)) {
+                return 0;
+            }
+            return Number((365.25 * Math.sqrt((a / 215.032) ** 3 / M)).toPrecision(5));
+        });
+    }
 }
 
 function populateTable() {
     let trs = [];
     for (let rownr = 0; rownr < data[CONST.USERDATAFIELDS[0]].length; ++rownr) {
         let tr = $create("tr");
-        for (const col of CONST.USERDATAFIELDS) {
+        for (const col of tableFields()) {
             const td = $create("td");
             td.textContent = data[col][rownr];
             tr.appendChild(td);
@@ -546,7 +876,80 @@ function populateTable() {
     tbody.replaceChildren(...trs);
 }
 
-function plot() {
+// ===== graph: start =====
+const GRAPH_CONFIG = { responsive: true, displaylogo: false };
+
+// One colour per phase of the star: the line in the graph changes colour with the phase
+const PHASE_COLORS = {
+    3: "#5aa8ff", // main sequence
+    5: "#ffd36b", // Hertzsprung gap
+    6: "#f2b134", // first giant branch
+    7: "#ff9a62", // core helium burning
+    8: "#ff5f56", // asymptotic giant branch
+    9: "#ff5f56",
+    10: "#7fe0ff", // helium star
+    11: "#ff7aa8", // helium giant
+    12: "#c8d6ff", // white dwarfs
+    13: "#9fb4ff",
+    14: "#b9a8ff",
+    18: "#b48cff", // neutron star
+    19: "#9aa0b5", // black hole
+};
+
+// Ready-made graphs (single-star simulator)
+const GRAPH_PRESETS = {
+    radius: { x: "time", y: "radius", style: "loglog" },
+    hr: { x: "efftemp", y: "lum", style: "loglog" }, // Hertzsprung-Russell diagram
+    mass: { x: "time", y: "mass", style: "loglin" },
+};
+
+// Ready-made graphs (binary simulator)
+const GRAPH_PRESETS_BINARY = {
+    mass1: { x: "time", y: "mass1", style: "loglin" },
+    radius1: { x: "time", y: "radius1", style: "loglog" },
+    sep: { x: "time", y: "sep", style: "loglog" },
+    period: { x: "time", y: "period", style: "loglog" },
+    hr1: { x: "efftemp1", y: "lum1", style: "loglog" },
+};
+
+let currentAxes = null; // what is on the axes of the graph that is shown
+let dotIndex = -1; // which trace is the white dot that follows the movie
+let dotTimer = null;
+let lastMovieState = null;
+
+function graphTheme(light) {
+    if (light) {
+        return PLOTLY_LIGHT_MODE;
+    }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? PLOTLY_DARK_MODE
+        : PLOTLY_LIGHT_MODE;
+}
+
+// Name and unit of a data column, for the axis titles and the hover text.
+// "mass1" -> { name: "Mass star 1", unit: "solar masses", title: "Mass star 1 (solar masses)" }
+function axisInfo(field) {
+    const m = field.match(/^([a-z]+)([12])?$/);
+    const base = m ? m[1] : field;
+    const star = m && m[2] ? ` ${_t("axis-star")} ${m[2]}` : "";
+    const name = _t(`axis-name-${base}`);
+    if (!name) {
+        const fallback = _t(`${field}-field`) || field;
+        return { name: fallback, unit: "", title: fallback };
+    }
+    const unit = _t(`unit-${base}`);
+    return {
+        name: name + star,
+        unit,
+        title: unit ? `${name}${star} (${unit})` : name + star,
+    };
+}
+
+// The traces and the layout of the graph. `light` makes the light version
+// (used for the download), `forExport` leaves out the white dot.
+function buildGraph(options = {}) {
+    const light = !!options.light;
+    const forExport = !!options.forExport;
     let xaxis = $id("x-axis").value;
     let yaxis = $id("y-axis").value;
     if (!(xaxis in data)) {
@@ -555,77 +958,296 @@ function plot() {
     if (!(yaxis in data)) {
         yaxis = GRAPHDEFAULTS["y"];
     }
+    const [xtype, ytype] = GRAPH_SCALES[$id("graph-style").value] ?? ["log", "log"];
+    const theme = graphTheme(light);
+    const dark = theme === PLOTLY_DARK_MODE;
+    const single = VARIANT == "single";
+    const xi = axisInfo(xaxis);
+    const yi = axisInfo(yaxis);
+    const hover = (withPhase) =>
+        (withPhase ? "<b>%{customdata}</b><br>" : "") +
+        `${xi.name}: %{x:.4g} ${xi.unit}<br>${yi.name}: %{y:.4g} ${yi.unit}<extra></extra>`;
 
-    const graphtype = $id("graph-style").value;
-    const [xtype, ytype] = GRAPH_SCALES[graphtype] ?? ["log", "log"];
-
-    let plottingData = {
-        x: data[xaxis],
-        y: data[yaxis],
-        type: "scatter",
-    };
-
-    let width = $id("graph").offsetWidth ?? 700;
-    width -= 100;
-
-    let theme = document.documentElement.dataset.theme; // explicit user-set theme
-    if (theme) {
-        theme = theme === "dark" ? PLOTLY_DARK_MODE : {};
+    const xs = data[xaxis];
+    const ys = data[yaxis];
+    const baseColor = dark ? "#3dc1b2" : "#1f9d8f";
+    // single star: one colour per phase of the star; binary: one colour per kind of interaction
+    const BIN_COLORS = { 0: baseColor, 3: "#ff9a62", 4: "#ff5f56", 7: "#ff7aa8", 8: "#9aa0b5", 9: "#b48cff" };
+    // binary: no interaction, stable mass transfer (3) or unstable mass transfer (4), merger, ...
+    const raw = single ? rawTypes["type"] : rawTypes["bintype"];
+    const tts = rawTypes["transfertype"];
+    // SeBa binary types: 2 detached, 3 semi-detached, 4 contact, 5 CE (gamma), 6 double spiral-in, 7 merged,
+    // 8 disrupted, 9 CE (alpha); mass transfer types 4 and 5 are unstable (common envelope)
+    const unstableAt = (v, i) => v === 5 || v === 6 || v === 9 || (tts && (tts[i] === 4 || tts[i] === 5));
+    const group = (v, i) => (single ? v : v <= 2 ? 0 : v <= 6 || v === 9 ? (unstableAt(v, i) ? 4 : 3) : v);
+    const nameOf = (g) =>
+        single ? _t(`type-${g}`) : g === 0 ? _t("transfertype-0") : g === 3 ? _t("transfertype-1") : g === 4 ? _t("transfertype-4") : _t(`bintype-${g}`);
+    const colorOf = (g) => (single ? PHASE_COLORS[g] : BIN_COLORS[g]) ?? baseColor;
+    const types = raw ? raw.map((v, i) => group(v, i)) : null;
+    const traces = [];
+    if (types && types.length === xs.length) {
+        // one coloured piece for every phase; the pieces share an end point, so the line has no gaps
+        const seen = new Set();
+        let start = 0;
+        for (let i = 1; i <= types.length; i++) {
+            if (i < types.length && types[i] === types[start]) {
+                continue;
+            }
+            const type = types[start];
+            const from = start > 0 ? start - 1 : 0;
+            const name = nameOf(type);
+            traces.push({
+                x: xs.slice(from, i),
+                y: ys.slice(from, i),
+                type: "scatter",
+                mode: "lines",
+                name,
+                legendgroup: String(type),
+                // unstable mass transfer gets its legend entry from the red circles below
+                showlegend: !seen.has(type) && !(!single && type === 4),
+                customdata: new Array(i - from).fill(name),
+                line: { color: colorOf(type), width: 2.5 },
+                hovertemplate: hover(true),
+            });
+            seen.add(type);
+            start = i;
+        }
+        // Unstable mass transfer (common envelope) happens in one go: in the output it is a single moment,
+        // so as a piece of line it would be invisible. It is shown as a red circle at each such moment.
+        if (!single) {
+            const idx = types.map((g, i) => (g === 4 ? i : -1)).filter((i) => i >= 0);
+            if (idx.length) {
+                const name = nameOf(4);
+                traces.push({
+                    x: idx.map((i) => xs[i]),
+                    y: idx.map((i) => ys[i]),
+                    type: "scatter",
+                    mode: "markers",
+                    name,
+                    legendgroup: "4",
+                    showlegend: true,
+                    customdata: idx.map(() => name),
+                    marker: { size: 10, color: BIN_COLORS[4], line: { color: dark ? "#0c1224" : "#ffffff", width: 1.5 } },
+                    hovertemplate: hover(true),
+                });
+            }
+        }
     } else {
-        // default to OS / browser theme
-        theme = window.matchMedia("(prefers-color-scheme: dark)").matches
-            ? PLOTLY_DARK_MODE
-            : {};
+        traces.push({
+            x: xs,
+            y: ys,
+            type: "scatter",
+            mode: "lines",
+            showlegend: false,
+            line: { color: baseColor, width: 2.5 },
+            hovertemplate: hover(false),
+        });
     }
-    const shapes = {
-        type: "line",
-        x0: 0,
-        x1: 0,
-        y0: 0,
-        y1: 1,
-        yref: "paper",
-        line: { color: "red", width: 1, dash: "dot" },
-        visible: false,
-    };
+    let dot = -1;
+    if (!forExport) {
+        traces.push({
+            x: [null],
+            y: [null],
+            type: "scatter",
+            mode: "markers",
+            showlegend: false,
+            hoverinfo: "skip",
+            marker: {
+                size: 13,
+                color: "#ffffff",
+                line: { color: dark ? "#0c1224" : "#14213d", width: 2 },
+            },
+        });
+        dot = traces.length - 1;
+    }
+
+    // the temperature axis of a Hertzsprung-Russell diagram runs from hot to cool
+    const reverseX = xaxis === "efftemp" || xaxis === "efftemp1";
     const layout = {
         ...theme,
+        height: options.height ?? 480,
+        margin: { l: 70, r: 20, t: 50, b: 60 },
         xaxis: {
             type: xtype,
-            autorange: true,
+            autorange: reverseX ? "reversed" : true,
+            title: { text: xi.title, standoff: 8 },
+            automargin: true,
             ...theme.xaxis,
         },
         yaxis: {
             type: ytype,
             autorange: true,
+            title: { text: yi.title, standoff: 8 },
+            automargin: true,
             ...theme.yaxis,
         },
-        width: width,
-        shapes: [shapes],
+        showlegend: !!types,
+        legend: { orientation: "h", x: 0, y: 1.12, font: { size: 12 } },
+        hovermode: "closest",
     };
-    Plotly.newPlot("plotly-graph", [plottingData, shapes], layout);
+    if (forExport) {
+        layout.annotations = [
+            {
+                text: _t("seba-main-title"),
+                xref: "container",
+                yref: "container",
+                x: 0.99,
+                y: 0.01,
+                xanchor: "right",
+                yanchor: "bottom",
+                showarrow: false,
+                font: { size: 11, color: "#7a8399" },
+            },
+        ];
+    }
+    return { traces, layout, xaxis, yaxis, xtype, ytype, dotIndex: dot };
 }
 
-function dataToCSV() {
-    const keys = Object.keys(data);
-    const header = keys.map((key) => _t(`${key}-field`)).join(",");
+function plot() {
+    const g = buildGraph();
+    currentAxes = { x: g.xaxis, y: g.yaxis, xtype: g.xtype, ytype: g.ytype };
+    dotIndex = g.dotIndex;
+    $id("download-graph").disabled = false;
+    Plotly.newPlot("plotly-graph", g.traces, g.layout, GRAPH_CONFIG).then(moveDot);
+}
+
+// The movie reports where the star is; the dot in the graph follows (a few times per second)
+function scheduleDot(state) {
+    lastMovieState = state;
+    if (dotTimer === null) {
+        dotTimer = setTimeout(() => {
+            dotTimer = null;
+            moveDot();
+        }, 60);
+    }
+}
+
+// Put the white dot on the line, at the place where the movie is now
+function moveDot() {
+    if (dotIndex < 0 || !lastMovieState || !currentAxes || !Object.keys(data).length) {
+        return;
+    }
+    const s = lastMovieState;
+    // interpolate the way the axis does (log or linear), so that the dot stays on the drawn line
+    const at = (field, type) => {
+        const column = data[field];
+        if (!column) {
+            return NaN;
+        }
+        const a = Number(column[s.i0]);
+        const b = Number(column[s.i1]);
+        if (!Number.isFinite(a) || !Number.isFinite(b)) {
+            return NaN;
+        }
+        if (type === "log" && a > 0 && b > 0) {
+            return Math.exp(Math.log(a) + (Math.log(b) - Math.log(a)) * s.f);
+        }
+        return a + (b - a) * s.f;
+    };
+    const x = at(currentAxes.x, currentAxes.xtype);
+    const y = at(currentAxes.y, currentAxes.ytype);
+    const ok = Number.isFinite(x) && Number.isFinite(y);
+    Plotly.restyle("plotly-graph", { x: [[ok ? x : null]], y: [[ok ? y : null]] }, [dotIndex]);
+}
+
+function applyPreset(name) {
+    const preset = (VARIANT == "single" ? GRAPH_PRESETS : GRAPH_PRESETS_BINARY)[name];
+    if (!preset) {
+        return;
+    }
+    $id("x-axis").value = preset.x;
+    $id("y-axis").value = preset.y;
+    $id("graph-style").value = preset.style;
+    if (Object.keys(data).length) {
+        plot();
+        populateTable();
+    }
+}
+
+// Save the graph as a picture: always the light version, which suits reports and slides
+async function downloadGraph() {
+    if (!Object.keys(data).length) {
+        return;
+    }
+    const g = buildGraph({ light: true, forExport: true, height: 650 });
+    const holder = document.createElement("div");
+    holder.style.cssText = "position:fixed;left:-10000px;top:0;width:1100px;height:650px;";
+    document.body.appendChild(holder);
+    try {
+        await Plotly.newPlot(holder, g.traces, { ...g.layout, width: 1100, height: 650 });
+        await Plotly.downloadImage(holder, {
+            format: "png",
+            width: 1100,
+            height: 650,
+            scale: 2,
+            filename: document.documentElement.lang === "nl" ? "sterrenstrijd-grafiek" : "star-workshop-graph",
+        });
+    } catch (error) {
+        console.warn("Could not download the graph:", error);
+    } finally {
+        Plotly.purge(holder);
+        holder.remove();
+    }
+}
+
+// Things that depend on the simulator: name of step 2, ready-made graphs, text under the graph
+function initGraphUI() {
+    $id("graph-heading").dataset.i8n = "header-graph-movie";
+    if (VARIANT != "single") {
+        // other quick picks for two stars
+        const select = $id("graph-preset");
+        select.replaceChildren(
+            ...["mass1", "radius1", "sep", "period", "hr1", "custom"].map((name) => {
+                const option = $create("option");
+                option.value = name;
+                option.dataset.i8n = `graph-preset-${name}`;
+                return option;
+            }),
+        );
+    }
+    $id("graph-preset-box").classList.replace("invisible", "visible");
+    $id("movie-caption").dataset.i8n =
+        VARIANT == "single" ? "movie-caption" : "movie-caption-binary";
+    $id("graph-caption").dataset.i8n =
+        VARIANT == "single" ? "graph-caption-single" : "graph-caption-binary";
+}
+// ===== graph: end =====
+
+// The data as text. `excel` gives the version for Excel with Dutch settings: semicolons between
+// the columns, a decimal comma in the numbers and a mark at the start (done in downloadData)
+function dataToCSV(excel = false) {
+    const sep = excel ? ";" : ",";
+    let keys = Object.keys(data);
+    if (VARIANT != "single") {
+        // the same order as the table: time, mass transfer type, period, separation, eccentricity, then the rest
+        const first = ["time", "transfertype", "period", "sep", "ecc"].filter((k) => keys.includes(k));
+        keys = [...first, ...keys.filter((k) => !first.includes(k))];
+    }
+    const quote = (text) => (/[";,\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text);
+    const cell = (value) => {
+        if (excel && typeof value === "number") {
+            return String(value).replace(".", ",");
+        }
+        return quote(String(value ?? ""));
+    };
+    const header = keys.map((key) => quote(_t(`${key}-field`))).join(sep);
     const length = data[keys[0]].length;
 
     const rows = [];
     for (let i = 0; i < length; i++) {
-        const row = keys.map((key) => data[key][i] ?? "").join(",");
-        rows.push(row);
+        rows.push(keys.map((key) => cell(data[key][i])).join(sep));
     }
 
     return header + "\n" + rows.join("\n");
 }
 
-function downloadData() {
-    const csv = dataToCSV(data);
+function downloadData(excel = false) {
+    const csv = (excel ? "\ufeff" : "") + dataToCSV(excel);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "SeBadata.csv";
+    link.download = excel ? "SeBadata-excel.csv" : "SeBadata.csv";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -634,18 +1256,19 @@ function downloadData() {
 
 function addEventListeners() {
     $id("start-button").addEventListener("click", runSeba);
-    $id("download-data").addEventListener("click", downloadData);
-    $id("lang-switch").addEventListener("change", (event) => {
-        switchLang(event.target.value);
-    });
-    $id("theme-switch").addEventListener("change", (event) => {
-        switchTheme(event.target.value);
+    $id("download-data").addEventListener("click", () => downloadData(false));
+    $id("download-data-excel").addEventListener("click", () => downloadData(true));
+    $id("download-graph").addEventListener("click", downloadGraph);
+    $id("graph-preset").addEventListener("change", (event) => applyPreset(event.target.value));
+    document.querySelectorAll(".lang button").forEach((button) => {
+        button.addEventListener("click", () => switchLang(button.dataset.lang));
     });
     for (const id of ["graph-style", "x-axis", "y-axis"]) {
         const elem = $id(id);
         const newElem = elem.cloneNode(true);
         newElem.value = elem.value;
         newElem.addEventListener("change", () => {
+            $id("graph-preset").value = "custom";
             plot();
             populateTable();
         });
@@ -653,124 +1276,6 @@ function addEventListeners() {
         parent.replaceChild(newElem, elem);
     }
 
-    $id("show-size").addEventListener("change", (event) => {
-        if (event.target.checked) {
-            $id("star-size-zoomrange").classList.replace(
-                "invisible",
-                "visible",
-            );
-            $id("star-size-zoomvalue").classList.replace(
-                "invisible",
-                "visible",
-            );
-            $id("sun-earth-scale").classList.replace("invisible", "visible");
-            $id("star-size-graph").classList.replace("invisible", "visible");
-            const zoom = $id("star-size-zoomrange").value;
-            const scale = 10 ** parseFloat(zoom);
-        } else {
-            $id("star-size-zoomrange").classList.replace(
-                "visible",
-                "invisible",
-            );
-            $id("star-size-zoomvalue").classList.replace(
-                "visible",
-                "invisible",
-            );
-            $id("sun-earth-scale").classList.replace("visible", "invisible");
-            $id("star-size-graph").classList.replace("visible", "invisible");
-        }
-    });
-    $id("star-size-zoomrange").addEventListener("change", (event) => {
-        const scale = 10 ** parseFloat(event.target.value);
-        const earth = $id("earth");
-        earth.setAttribute("r", SIZES["earth"] * scale);
-        $id("sun").setAttribute("r", SIZES["sun"] * scale);
-        $id("star").setAttribute("r", SIZES["star"] * scale);
-        $id("star2").setAttribute("r", SIZES["star2"] * scale);
-    });
-
-    const graph = $id("plotly-graph");
-    graph.addEventListener("mousemove", function (event) {
-        if (!$id("show-size").checked) {
-            return;
-        }
-        if (rafid) {
-            cancelAnimationFrame(rafid);
-        }
-        rafid = requestAnimationFrame(() => {
-            const fullLayout = graph._fullLayout;
-            const margin = fullLayout.margin;
-            const bb = graph.getBoundingClientRect();
-            const xPixel = event.clientX - bb.left - margin.l;
-            if (xPixel > 0 && xPixel < fullLayout.width - margin.l - margin.r) {
-                const time = fullLayout.xaxis.p2d(xPixel);
-                // Use Plotly.relayout for high-performance updates
-                Plotly.relayout(graph, {
-                    "shapes[0].x0": time,
-                    "shapes[0].x1": time,
-                    "shapes[0].visible": true,
-                });
-                if (VARIANT == "single") {
-                    const radius = interpolateRadius(time, "radius");
-                    SIZES["star"] = SIZES["sun"] * radius;
-                    const scale =
-                        10 ** parseFloat($id("star-size-zoomrange").value);
-                    $id("star").setAttribute("r", SIZES["star"] * scale);
-
-                    const temp = interpolateRadius(time, "efftemp");
-                    $id("star").setAttribute("fill", starColor(temp));
-                } else {
-                    const radius = interpolateRadius(time, "radius1");
-                    SIZES["star"] = SIZES["sun"] * radius;
-                    const scale =
-                        10 ** parseFloat($id("star-size-zoomrange").value);
-                    $id("star").setAttribute("r", SIZES["star"] * scale);
-
-                    const temp = interpolateRadius(time, "efftemp1");
-                    $id("star").setAttribute("fill", starColor(temp));
-
-                    const radius2 = interpolateRadius(time, "radius2");
-                    SIZES["star2"] = SIZES["sun"] * radius2;
-                    const scale2 =
-                        10 ** parseFloat($id("star-size-zoomrange").value);
-                    $id("star2").setAttribute("r", SIZES["star2"] * scale2);
-
-                    const temp2 = interpolateRadius(time, "efftemp2");
-                    $id("star2").setAttribute("fill", starColor(temp2));
-                }
-            }
-        });
-    });
-    graph.addEventListener("mouseleave", function () {
-        Plotly.relayout(graph, { "shapes[0].visible": false });
-    });
-}
-
-function interpolateRadius(time, rkey) {
-    const times = data["time"];
-    const n = times.length;
-    const radii = data[rkey];
-    let i = -1;
-    let w1 = 1.0;
-    let w2 = 0.0;
-    if (time < times[0]) {
-        i = 0;
-    } else if (time >= times[n - 1]) {
-        i = n - 1;
-    } else {
-        for (const [j, t] of times.entries()) {
-            if (t >= time) {
-                const dt = t - times[j - 1];
-                w1 = dt / (time - times[j - 1]); // before
-                w2 = dt / (t - time); // after
-                i = j;
-                break;
-            }
-        }
-    }
-
-    // weight average
-    return (radii[i - 1] * w1 + radii[i] * w2) / (w1 + w2);
 }
 
 async function init() {
@@ -784,10 +1289,10 @@ async function init() {
         $id("data-section").classList.replace("invisible", "visible");
 		
 		if (VARIANT == "single"){
-	        $id("introduction-star").classList.replace("invisible", "visible");			
+	        $id("introduction-star").classList.replace("invisible", "visible"); 
 		}
 		if (VARIANT == "double" || VARIANT == "binary"){
-	        $id("introduction-binary").classList.replace("invisible", "visible");			
+	        $id("introduction-binary").classList.replace("invisible", "visible"); 
 		}
 		
     } else {
@@ -798,23 +1303,23 @@ async function init() {
         $id("graph").classList.replace("visible", "invisible");
         $id("data-section").classList.replace("visible", "invisible");
     }
+    initGraphUI();
     createControls();
     updateMinMax();
+    if (VARIANT != "single") {
+        createCompanionSwitch();
+        createOrbitSwitch();
+    }
     /* Get a default language setting from the local storage */
     const lang = localStorage.getItem("lang") || DEFAULT_LANG;
-    $id("lang-switch").value = lang;
-    /* Get a default theme/mode setting from the local storage */
-    const theme = localStorage.getItem("theme") || "system";
-    $id("theme-switch").value = theme;
-    if (theme !== "system") {
-        document.documentElement.dataset.theme = theme;
-    }
+    setLabels(lang); // show the right language in the menu and footer straight away
 
     addEventListeners();
 
     await loadTranslations();
     switchLang(lang);
     $id("start-button").disabled = false;
+    initMovie();
 }
 
 // `init()` sets up some essentials after the page has loaded,

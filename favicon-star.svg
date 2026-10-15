@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- alternative favicon: the single (orange) star from the banner on the main page -->
+  <defs>
+    <radialGradient id="o" cx="42%" cy="40%" r="70%"><stop offset="0" stop-color="#ffd9a0"/><stop offset=".6" stop-color="#f0914f"/><stop offset="1" stop-color="#b8502a"/></radialGradient>
+    <radialGradient id="h" cx="50%" cy="50%" r="50%"><stop offset=".38" stop-color="#f0914f" stop-opacity=".55"/><stop offset="1" stop-color="#f0914f" stop-opacity="0"/></radialGradient>
+    <radialGradient id="l" cx="50%" cy="50%" r="50%"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#1a0a00" stop-opacity=".55"/></radialGradient>
+    <filter id="d" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.15" numOctaves="4" seed="8"/><feColorMatrix type="matrix" values="0 0 0 0 .35  0 0 0 0 .10  0 0 0 0 .02  2.4 0 0 0 -1.05"/></filter>
+    <filter id="b" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.29" numOctaves="3" seed="16"/><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 .95  0 0 0 0 .75  0 -2.2 0 0 1.0"/></filter>
+    <clipPath id="c"><circle cx="32" cy="32" r="21"/></clipPath>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0f1b3d"/>
+  <circle cx="32" cy="32" r="31" fill="url(#h)"/>
+  <g clip-path="url(#c)">
+    <circle cx="32" cy="32" r="21" fill="url(#o)"/>
+    <rect x="11" y="11" width="42" height="42" filter="url(#d)"/>
+    <rect x="11" y="11" width="42" height="42" filter="url(#b)"/>
+    <circle cx="32" cy="32" r="21" fill="url(#l)"/>
+  </g>
+</svg>

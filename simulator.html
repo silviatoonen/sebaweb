@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      // Without ?variant=single|binary there is nothing to simulate: go to the main page
+      if (!/[?&]variant=/.test(location.search)) location.replace("index.html");
+    </script>
+    <title>Star Workshop</title>
+    <link rel="icon" href="favicon-star.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon-star.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="apple-touch-icon-star.png" />
+    <link rel="stylesheet" href="base.css?v=21" />
+    <script src="https://cdn.plot.ly/plotly-3.4.0.min.js" defer></script>
+    <script src="base.js?v=37" type="module"></script>
+  </head>
+  <body>
+    <header id="header">
+      <nav id="nav">
+        <a class="brand" href="index.html"><span class="brand-name"><span data-l="nl">Sterrenstrijd</span><span data-l="en" hidden>Star Workshop</span></span><span class="brand-sub"><span data-l="nl">Interactieve sterrenkunde-simulators</span><span data-l="en" hidden>Interactive astronomy simulators</span></span></a>
+        <div id="menu">
+          <ul>
+            <li><a href="index.html#about"><span data-l="nl">Intro</span><span data-l="en" hidden>About</span></a></li>
+            <li><a href="index.html#overview"><span data-l="nl">Ontdek</span><span data-l="en" hidden>Explore</span></a></li>
+            <li><a href="index.html#tools"><span data-l="nl">Simulators</span><span data-l="en" hidden>Tools</span></a></li>
+            <li><a href="index.html#projects"><span data-l="nl">Projecten</span><span data-l="en" hidden>Projects</span></a></li>
+          </ul>
+        </div>
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" data-lang="nl" aria-pressed="true">NL</button>
+          <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        </div>
+      </nav>
+      <div id="banner">
+        <svg class="banner-art" viewBox="0 0 800 240" preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false">
+          <defs>
+            <radialGradient id="ha-neb1" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#4f7bd8" stop-opacity=".30"/><stop offset="1" stop-color="#4f7bd8" stop-opacity="0"/></radialGradient>
+            <radialGradient id="ha-neb2" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#3dc1b2" stop-opacity=".20"/><stop offset="1" stop-color="#3dc1b2" stop-opacity="0"/></radialGradient>
+            <radialGradient id="ha-neb3" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#b48cff" stop-opacity=".18"/><stop offset="1" stop-color="#b48cff" stop-opacity="0"/></radialGradient>
+            <radialGradient id="ha-y" cx="42%" cy="40%" r="70%"><stop offset="0" stop-color="#fff0c4"/><stop offset=".6" stop-color="#f5c260"/><stop offset="1" stop-color="#d98a2c"/></radialGradient><radialGradient id="ha-y-halo" cx="50%" cy="50%" r="50%"><stop offset=".42" stop-color="#f5c260" stop-opacity=".45"/><stop offset="1" stop-color="#f5c260" stop-opacity="0"/></radialGradient>
+            <radialGradient id="ha-o" cx="42%" cy="40%" r="70%"><stop offset="0" stop-color="#ffd9a0"/><stop offset=".6" stop-color="#f0914f"/><stop offset="1" stop-color="#b8502a"/></radialGradient><radialGradient id="ha-o-halo" cx="50%" cy="50%" r="50%"><stop offset=".42" stop-color="#f0914f" stop-opacity=".45"/><stop offset="1" stop-color="#f0914f" stop-opacity="0"/></radialGradient>
+            <radialGradient id="ha-b" cx="42%" cy="40%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#bcd4ff"/><stop offset="1" stop-color="#7fa3ee"/></radialGradient><radialGradient id="ha-b-halo" cx="50%" cy="50%" r="50%"><stop offset=".42" stop-color="#bcd4ff" stop-opacity=".45"/><stop offset="1" stop-color="#bcd4ff" stop-opacity="0"/></radialGradient>
+            <radialGradient id="ha-limb" cx="50%" cy="50%" r="50%"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#1a0a00" stop-opacity=".55"/></radialGradient>
+            <radialGradient id="ha-pl" cx="35%" cy="35%" r="70%"><stop offset="0" stop-color="#bcd6ff"/><stop offset=".7" stop-color="#5f8fe0"/><stop offset="1" stop-color="#2a4a96"/></radialGradient>
+            <radialGradient id="ha-pl2" cx="35%" cy="35%" r="70%"><stop offset="0" stop-color="#d9f5e8"/><stop offset=".7" stop-color="#6fc0a4"/><stop offset="1" stop-color="#2f7a68"/></radialGradient>
+            <linearGradient id="ha-gas" x1="0" x2="1"><stop offset="0" stop-color="#f6c66a" stop-opacity=".6"/><stop offset="1" stop-color="#a9c7ff" stop-opacity=".6"/></linearGradient>
+            <filter id="ha-blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>
+            <filter id="ha-dark0" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="4" seed="3"/><feColorMatrix type="matrix" values="0 0 0 0 .35  0 0 0 0 .10  0 0 0 0 .02  2.4 0 0 0 -1.05"/></filter>
+            <filter id="ha-light0" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.085" numOctaves="3" seed="9"/><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 .95  0 0 0 0 .75  0 -2.2 0 0 1.0"/></filter><filter id="ha-dark1" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.065" numOctaves="4" seed="8"/><feColorMatrix type="matrix" values="0 0 0 0 .35  0 0 0 0 .10  0 0 0 0 .02  2.4 0 0 0 -1.05"/></filter>
+            <filter id="ha-light1" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.123" numOctaves="3" seed="16"/><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 .95  0 0 0 0 .75  0 -2.2 0 0 1.0"/></filter><filter id="ha-dark2" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.085" numOctaves="4" seed="13"/><feColorMatrix type="matrix" values="0 0 0 0 .35  0 0 0 0 .10  0 0 0 0 .02  2.4 0 0 0 -1.05"/></filter>
+            <filter id="ha-light2" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.161" numOctaves="3" seed="23"/><feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 .95  0 0 0 0 .75  0 -2.2 0 0 1.0"/></filter>
+            <filter id="ha-darkB" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="4" seed="8"/><feColorMatrix type="matrix" values="0 0 0 0 .22  0 0 0 0 .32  0 0 0 0 .62  2.4 0 0 0 -1.05"/></filter>
+          </defs>
+          <ellipse cx="560" cy="130" rx="300" ry="150" fill="url(#ha-neb1)"/>
+          <ellipse cx="740" cy="210" rx="220" ry="110" fill="url(#ha-neb2)"/>
+          <ellipse cx="640" cy="30" rx="200" ry="90" fill="url(#ha-neb3)"/>
+          <circle cx="362" cy="11" r="1.2" fill="#dfe8ff" opacity="0.48"/><circle cx="684" cy="99" r="1.6" fill="#dfe8ff" opacity="0.49"/><circle cx="491" cy="97" r="1.2" fill="#dfe8ff" opacity="0.40"/><circle cx="73" cy="141" r="0.6" fill="#dfe8ff" opacity="0.55"/><circle cx="317" cy="236" r="1.6" fill="#dfe8ff" opacity="0.58"/><circle cx="499" cy="152" r="0.6" fill="#dfe8ff" opacity="0.28"/><circle cx="152" cy="126" r="0.6" fill="#dfe8ff" opacity="0.64"/><circle cx="261" cy="27" r="0.8" fill="#dfe8ff" opacity="0.51"/><circle cx="223" cy="239" r="0.6" fill="#dfe8ff" opacity="0.60"/><circle cx="252" cy="119" r="1" fill="#dfe8ff" opacity="0.26"/><circle cx="451" cy="56" r="0.6" fill="#dfe8ff" opacity="0.67"/><circle cx="309" cy="218" r="0.6" fill="#dfe8ff" opacity="0.36"/><circle cx="742" cy="27" r="1.2" fill="#dfe8ff" opacity="0.74"/><circle cx="318" cy="38" r="0.8" fill="#dfe8ff" opacity="0.64"/><circle cx="216" cy="45" r="1" fill="#dfe8ff" opacity="0.26"/><circle cx="328" cy="200" r="0.8" fill="#dfe8ff" opacity="0.37"/><circle cx="81" cy="31" r="1.2" fill="#dfe8ff" opacity="0.34"/><circle cx="447" cy="233" r="0.8" fill="#dfe8ff" opacity="0.74"/><circle cx="616" cy="218" r="1.2" fill="#dfe8ff" opacity="0.31"/><circle cx="337" cy="111" r="1" fill="#dfe8ff" opacity="0.68"/><circle cx="780" cy="28" r="0.6" fill="#dfe8ff" opacity="0.36"/><circle cx="315" cy="164" r="1.6" fill="#dfe8ff" opacity="0.30"/><circle cx="791" cy="111" r="1" fill="#dfe8ff" opacity="0.25"/><circle cx="488" cy="152" r="1.2" fill="#dfe8ff" opacity="0.29"/><circle cx="72" cy="23" r="0.8" fill="#dfe8ff" opacity="0.26"/><circle cx="295" cy="44" r="0.8" fill="#dfe8ff" opacity="0.73"/><circle cx="387" cy="19" r="1.2" fill="#dfe8ff" opacity="0.34"/><circle cx="123" cy="192" r="1.6" fill="#dfe8ff" opacity="0.37"/><circle cx="152" cy="105" r="1.6" fill="#dfe8ff" opacity="0.35"/><circle cx="760" cy="179" r="1.6" fill="#dfe8ff" opacity="0.29"/><circle cx="38" cy="57" r="1.6" fill="#dfe8ff" opacity="0.73"/><circle cx="191" cy="86" r="1" fill="#dfe8ff" opacity="0.46"/><circle cx="576" cy="36" r="0.8" fill="#dfe8ff" opacity="0.49"/><circle cx="523" cy="40" r="0.6" fill="#dfe8ff" opacity="0.39"/><circle cx="734" cy="106" r="0.6" fill="#dfe8ff" opacity="0.28"/><circle cx="329" cy="130" r="0.6" fill="#dfe8ff" opacity="0.34"/><circle cx="295" cy="18" r="0.8" fill="#dfe8ff" opacity="0.30"/><circle cx="111" cy="234" r="1" fill="#dfe8ff" opacity="0.58"/><circle cx="553" cy="24" r="0.8" fill="#dfe8ff" opacity="0.54"/><circle cx="770" cy="11" r="0.6" fill="#dfe8ff" opacity="0.49"/><circle cx="584" cy="166" r="0.6" fill="#dfe8ff" opacity="0.29"/><circle cx="437" cy="103" r="0.8" fill="#dfe8ff" opacity="0.65"/><circle cx="732" cy="183" r="1.2" fill="#dfe8ff" opacity="0.70"/><circle cx="697" cy="217" r="0.6" fill="#dfe8ff" opacity="0.68"/><circle cx="458" cy="45" r="1.2" fill="#dfe8ff" opacity="0.44"/><circle cx="10" cy="38" r="0.6" fill="#dfe8ff" opacity="0.57"/><circle cx="795" cy="177" r="1" fill="#dfe8ff" opacity="0.44"/><circle cx="588" cy="22" r="1.2" fill="#dfe8ff" opacity="0.48"/><circle cx="90" cy="126" r="1.2" fill="#dfe8ff" opacity="0.38"/><circle cx="9" cy="157" r="1.6" fill="#dfe8ff" opacity="0.35"/><circle cx="136" cy="191" r="1.2" fill="#dfe8ff" opacity="0.50"/><circle cx="193" cy="210" r="1" fill="#dfe8ff" opacity="0.35"/><circle cx="345" cy="139" r="0.8" fill="#dfe8ff" opacity="0.69"/><circle cx="308" cy="23" r="1" fill="#dfe8ff" opacity="0.35"/><circle cx="108" cy="182" r="0.6" fill="#dfe8ff" opacity="0.61"/><circle cx="760" cy="144" r="0.8" fill="#dfe8ff" opacity="0.31"/><circle cx="377" cy="201" r="1.2" fill="#dfe8ff" opacity="0.44"/><circle cx="416" cy="70" r="1.6" fill="#dfe8ff" opacity="0.48"/><circle cx="60" cy="16" r="1.6" fill="#dfe8ff" opacity="0.27"/><circle cx="567" cy="17" r="1" fill="#dfe8ff" opacity="0.57"/><circle cx="451" cy="53" r="1.2" fill="#dfe8ff" opacity="0.48"/><circle cx="20" cy="151" r="0.8" fill="#dfe8ff" opacity="0.64"/><circle cx="637" cy="232" r="0.6" fill="#dfe8ff" opacity="0.47"/><circle cx="504" cy="61" r="1" fill="#dfe8ff" opacity="0.73"/><circle cx="548" cy="104" r="1.2" fill="#dfe8ff" opacity="0.38"/><circle cx="571" cy="113" r="1.6" fill="#dfe8ff" opacity="0.61"/><circle cx="143" cy="142" r="1" fill="#dfe8ff" opacity="0.52"/><circle cx="634" cy="191" r="0.6" fill="#dfe8ff" opacity="0.46"/><circle cx="714" cy="202" r="1.2" fill="#dfe8ff" opacity="0.48"/><circle cx="500" cy="193" r="1.2" fill="#dfe8ff" opacity="0.53"/><circle cx="521" cy="107" r="0.6" fill="#dfe8ff" opacity="0.36"/><circle cx="720" cy="230" r="1" fill="#dfe8ff" opacity="0.52"/><circle cx="633" cy="167" r="0.6" fill="#dfe8ff" opacity="0.42"/><circle cx="66" cy="229" r="1.6" fill="#dfe8ff" opacity="0.46"/><circle cx="220" cy="198" r="0.8" fill="#dfe8ff" opacity="0.65"/><circle cx="51" cy="136" r="0.8" fill="#dfe8ff" opacity="0.52"/><circle cx="549" cy="196" r="1.2" fill="#dfe8ff" opacity="0.32"/><circle cx="413" cy="96" r="1.2" fill="#dfe8ff" opacity="0.72"/><circle cx="394" cy="214" r="0.6" fill="#dfe8ff" opacity="0.63"/><circle cx="352" cy="11" r="1.6" fill="#dfe8ff" opacity="0.57"/><circle cx="418" cy="159" r="1.6" fill="#dfe8ff" opacity="0.38"/><circle cx="537" cy="216" r="1.6" fill="#dfe8ff" opacity="0.35"/><circle cx="681" cy="224" r="1.6" fill="#dfe8ff" opacity="0.39"/>
+          <g class="ba-single" transform="translate(-60 -305)">
+          <!-- a single star -->
+          <circle cx="700" cy="425" r="92" fill="url(#ha-o-halo)"/>
+          <g clip-path="url(#clip1)"><clipPath id="clip1"><circle cx="700" cy="425" r="40"/></clipPath>
+            <circle cx="700" cy="425" r="40" fill="url(#ha-o)"/>
+            <rect x="660" y="385" width="80" height="80" filter="url(#ha-dark1)"/>
+            <rect x="660" y="385" width="80" height="80" filter="url(#ha-light1)"/>
+            <circle cx="700" cy="425" r="40" fill="url(#ha-limb)"/></g>
+          </g>
+          <g class="ba-binary">
+          <g transform="translate(-110 -173)">
+          <!-- a binary with a stream of gas -->
+          <ellipse cx="534" cy="293" rx="135" ry="62" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="1.3" stroke-dasharray="4 6" transform="rotate(-12 534 293)"/>
+          <path d="M581 279Q545 331 494 303" fill="none" stroke="url(#ha-gas)" stroke-width="9" stroke-linecap="round" filter="url(#ha-blur)"/>
+          <path d="M581 279Q545 331 494 303" fill="none" stroke="#fff4dc" stroke-opacity=".4" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="2 5"/>
+          <circle cx="470" cy="318" r="69" fill="url(#ha-y-halo)"/>
+          <g clip-path="url(#clip2)"><clipPath id="clip2"><circle cx="470" cy="318" r="30"/></clipPath>
+            <circle cx="470" cy="318" r="30" fill="url(#ha-y)"/>
+            <rect x="440" y="288" width="60" height="60" filter="url(#ha-dark2)"/>
+            <rect x="440" y="288" width="60" height="60" filter="url(#ha-light2)"/>
+            <circle cx="470" cy="318" r="30" fill="url(#ha-limb)"/></g>
+          <circle cx="598" cy="268" r="44" fill="url(#ha-b-halo)"/>
+          <g clip-path="url(#clip3)"><clipPath id="clip3"><circle cx="598" cy="268" r="19"/></clipPath>
+            <circle cx="598" cy="268" r="19" fill="url(#ha-b)"/>
+            <rect x="579" y="249" width="38" height="38" filter="url(#ha-darkB)"/>
+            <rect x="579" y="249" width="38" height="38" filter="url(#ha-light0)"/>
+            <circle cx="598" cy="268" r="19" fill="url(#ha-limb)"/></g>
+          </g>
+          <g transform="translate(0 10)">
+          <!-- a star with two planets -->
+          <ellipse cx="690" cy="110" rx="62" ry="22" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="1.2" stroke-dasharray="3 6"/>
+          <ellipse cx="690" cy="110" rx="102" ry="36" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="1.2" stroke-dasharray="3 6"/>
+          <circle cx="690" cy="110" r="51" fill="url(#ha-y-halo)"/>
+          <g clip-path="url(#clip4)"><clipPath id="clip4"><circle cx="690" cy="110" r="22"/></clipPath>
+            <circle cx="690" cy="110" r="22" fill="url(#ha-y)"/>
+            <rect x="668" y="88" width="44" height="44" filter="url(#ha-dark1)"/>
+            <rect x="668" y="88" width="44" height="44" filter="url(#ha-light1)"/>
+            <circle cx="690" cy="110" r="22" fill="url(#ha-limb)"/></g>
+          <circle cx="640" cy="123" r="6.5" fill="url(#ha-pl)"/>
+          <circle cx="780" cy="93" r="4.5" fill="url(#ha-pl2)"/>
+          </g>
+          </g>
+        </svg>
+        <h1 data-i8n="seba-main-title">SeBa online</h1>
+      </div>
+      <script>
+        // banner picture: the single star for the single-star simulator, the binary and the planets for the binary one
+        document.getElementById("banner").dataset.variant = new URLSearchParams(location.search).get("variant") || "single";
+      </script>
+    </header>
+    <main>
+      <section id="introduction" class="invisible">
+        <!-- Kept on purpose: base.js expects this element. The landing page now lives in index.html -->
+        <p><a href="index.html">Sterrenstrijd</a></p>
+      </section>
+      <section id="introduction-star" class="invisible">
+        <h2 data-i8n="introduction-star"></h2>
+        <div data-i8n="introduction-text-star"></div>
+      </section>
+      <section id="introduction-binary" class="invisible">
+        <h2 data-i8n="introduction-binary"></h2>
+        <div data-i8n="introduction-text-binary"></div>
+      </section>
+
+      <section id="controls" class="invisible">
+        <h2 data-i8n="parameters"></h2>
+        <form id="user-input">
+          <template id="control-template">
+            <div id="template-slider" class="control">
+              <input
+                type="range"
+                id="template-range"
+                step="0.01"
+                data-input="template-input"
+              />
+              <input
+                type="number"
+                id="template-input"
+                min="0.01"
+                max="100"
+                value="1"
+                step="any"
+                data-prec="2"
+                data-range="template-range"
+              />
+              <div class="tooltip" id="template-tooltip">
+                ⓘ <span class="tooltiptext" data-i8n="template-tooltip"></span>
+              </div>
+              <label for="template-input"
+                ><span data-i8n="template-name"></span>(<span
+                  id="template-min-value"
+                ></span>
+                &ndash; <span id="template-max-value"></span>)</label
+              >
+            </div>
+          </template>
+        </form>
+
+        <button id="start-button" disabled data-i8n="start">Start</button>
+        <input type="checkbox" id="direct-update" />
+        <label for="direct-update"
+          ><span data-i8n="update-directly"></span
+        ></label>
+        <div class="tooltip" id="update-directly-tooltip">
+          ⓘ <span class="tooltiptext" data-i8n="update-directly-tooltip"></span>
+        </div>
+        <p id="status"></p>
+      </section>
+
+      <section id="graph" class="invisible">
+        <h2 id="graph-heading" data-i8n="header-graph">Graph</h2>
+        <div id="gif-space" role="img" aria-label="Space reserved for an animation">
+          <span data-l="nl">Hier komt een animatie (GIF)</span><span data-l="en" hidden>An animation (GIF) will go here</span>
+        </div>
+        <div id="star-movie" class="invisible">
+          <div class="movie-controls">
+            <button type="button" id="movie-play"></button>
+            <button type="button" id="movie-replay"></button>
+            <input type="range" id="movie-slider" min="0" max="1000" value="0" step="1" aria-label="Movie" />
+            <select id="movie-speed" aria-label="Speed">
+              <option value="0.5">0.5×</option>
+              <option value="1" selected>1×</option>
+              <option value="2">2×</option>
+            </select>
+          </div>
+          <canvas id="star-canvas" role="img"></canvas>
+          <div class="movie-actions">
+            <button type="button" id="movie-download" disabled></button>
+          </div>
+          <p class="movie-caption" id="movie-caption" data-i8n="movie-caption"></p>
+          <p class="movie-caption invisible" id="movie-credit" data-i8n="movie-credit"></p>
+          <p class="movie-caption invisible" id="movie-credit-helix" data-i8n="movie-credit-helix"></p>
+        </div>
+        <div id="plotly-graph"></div>
+        <div class="graph-actions">
+          <button type="button" id="download-graph" data-i8n="graph-download" disabled></button>
+          <div class="graph-style invisible" id="graph-preset-box">
+            <label for="graph-preset" data-i8n="graph-preset"></label>
+            <select name="preset" id="graph-preset">
+              <option value="radius" data-i8n="graph-preset-radius"></option>
+              <option value="hr" data-i8n="graph-preset-hr"></option>
+              <option value="mass" data-i8n="graph-preset-mass"></option>
+              <option value="custom" data-i8n="graph-preset-custom"></option>
+            </select>
+          </div>
+        </div>
+        <div class="axis-options">
+            <div class="graph-style">
+              <label for="graph-style" data-i8n="graph-style"></label>
+              <select name="style" id="graph-style" disabled>
+                <option value="linlin" data-i8n="graph-linlin"></option>
+                <option value="linlog" data-i8n="graph-linlog"></option>
+                <option value="loglin" data-i8n="graph-loglin"></option>
+                <option
+                  value="loglog"
+                  selected
+                  data-i8n="graph-loglog"
+                ></option>
+              </select>
+            </div>
+            <div class="axis-column">
+              <label for="x-axis" data-i8n="x-axis"></label>
+              <select name="xaxis" id="x-axis" disabled></select>
+            </div>
+            <div class="axis-column">
+              <label for="y-axis" data-i8n="y-axis"></label>
+              <select name="yaxis" id="y-axis" disabled></select>
+            </div>
+          </div>
+        <p id="graph-caption" class="movie-caption" data-i8n="graph-caption-single"></p>
+      </section>
+
+      <section id="data-section" class="invisible">
+        <h2 data-i8n="header-results">Results</h2>
+        <button id="download-data" data-i8n="download-data" disabled>
+          Download data as CSV
+        </button>
+        <button id="download-data-excel" data-i8n="download-data-excel" disabled></button>
+        <p class="movie-caption" data-i8n="download-data-note"></p>
+        <table id="data-table">
+          <thead>
+            <tr></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section id="program-log" class="invisible">
+        <details>
+          <summary data-i8n="program-log">Program log</summary>
+          <output></output>
+        </details>
+      </section>
+    </main>
+    <footer>
+  <div class="wrap">
+    <div><b><span data-l="nl">Sterrenstrijd</span><span data-l="en" hidden>Star Workshop</span></b><br><span data-l="nl">Interactieve sterrenkunde-simulators</span><span data-l="en" hidden>Interactive astronomy simulators</span><br><span data-l="nl">Het leven van een ster, in de palm van je hand.</span><span data-l="en" hidden>A star's life, in the palm of your hand.</span></div>
+    <div><a href="index.html#about"><span data-l="nl">Intro</span><span data-l="en" hidden>About</span></a><a href="index.html#tools"><span data-l="nl">Simulators</span><span data-l="en" hidden>Tools</span></a><a href="index.html#projects"><span data-l="nl">Projecten</span><span data-l="en" hidden>Projects</span></a><a href="index.html#team"><span data-l="nl">Code en team</span><span data-l="en" hidden>Code &amp; team</span></a><a href="index.html#contact"><span data-l="nl">Contact</span><span data-l="en" hidden>Contact</span></a></div>
+    <div>© 2026 Silvia Toonen</div>
+  </div>
+</footer>
+  </body>
+</html>
