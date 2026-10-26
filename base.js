@@ -433,7 +433,7 @@ function updateMinMax() {
 async function loadTranslations() {
     for (const lang of LANGUAGES) {
         try {
-            const response = await fetch(`${lang}.json?v=5`); // ?v: load the new texts after a change
+            const response = await fetch(`${lang}.json?v=6`); // ?v: load the new texts after a change
 
             if (!response.ok) {
                 throw new Error(`Could not fetch ${lang}.json`);

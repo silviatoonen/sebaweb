@@ -30,7 +30,7 @@
   "introduction-star": "<b>Ster simulator</b>",
   "introduction-text-star": [
     "<p>Hier kun je de <b>levensloop van een ster</b> naspelen: van haar geboorte op de hoofdreeks tot haar einde als <b>witte dwerg, neutronenster of zwart gat</b>. Je kunt de massa instellen tussen ongeveer 0,01 en 100 keer de massa van de zon, de <b>metalliciteit</b> (= metaalgehalte) aanpassen en kiezen hoelang je de evolutie laat doorlopen.</p>",
-    "<p>Ter oriëntatie: onze zon heeft (per definitie) een massa van <b>1 zonsmassa</b>, een metalliciteit van ongeveer <b>0,02</b> en een leeftijd van zo’n <b>4,6 miljard jaar</b>. Het heelal zelf is ongeveer <b>13,8 miljard jaar</b> oud. Sterren die gevormd zijn toen het heelal nog jong was, hebben daarom vaak een <b>lager metaalgehalte</b>.</p>"
+    "<p>Ter oriëntatie: onze zon heeft (per definitie) een massa van <b>1 zonsmassa</b>, een metalliciteit van ongeveer <b>0,02</b> en een leeftijd van zo’n <b>4,6 miljard jaar</b>. Het heelal zelf is ongeveer <b>13,8 miljard jaar</b> oud. Het metaalgehalte in het heelal is langzaam toegenomen (door de kernfusie in sterren!), dus sterren die gevormd zijn toen het heelal nog jong was, hebben vaak een <b>lager metaalgehalte</b>.</p>"
   ],
   "introduction-binary": "<b>Dubbelster simulator</b>",
   "introduction-text-binary": [

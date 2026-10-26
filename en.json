@@ -30,7 +30,7 @@
   "introduction-star": "<b>Star simulator</b>",
   "introduction-text-star": [
     "<p>Here, you can explore the <b>life story of a star</b>: from its birth on the main sequence all the way to its final state as a <b>white dwarf, neutron star, or black hole</b>. You can set the mass anywhere between about 0.01 and 100 times the mass of the Sun, adjust the <b>metallicity</b> (= metal content), and choose how long you want to follow the evolution.</p>",
-    "<p>For reference: our Sun has (by definition) a mass of <b>1 Solar mass</b>, a metallicity of about <b>0.02</b>, and an age of roughly <b>4.6 billion years</b>. The universe itself is about <b>13.8 billion years</b> old. Stars that formed when the universe was young often have a <b>lower metallicity </b>.</p>"
+    "<p>For reference: our Sun has (by definition) a mass of <b>1 Solar mass</b>, a metallicity of about <b>0.02</b>, and an age of roughly <b>4.6 billion years</b>. The universe itself is about <b>13.8 billion years</b> old. The metallicity of the universe has slowly increased (because of nuclear fusion in stars!), so stars that formed when the universe was young often have a <b>lower metallicity</b>.</p>"
   ],
   "introduction-binary": "<b>Binary simulator </b>",
   "introduction-text-binary": [
