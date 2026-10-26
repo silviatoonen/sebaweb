@@ -38,7 +38,7 @@ export const CONTROLS = {
     mass: {
         min: 0.01,
         max: 100,
-        value: 2,
+        value: 10,
         step: 0.01,
         prec: 2,
         log: true,

@@ -55,7 +55,7 @@ export const CONTROLS = {
     mass2: {
         min: 0.01,
         max: 100,
-        value: 1,
+        value: 1.9,
         step: 0.01,
         prec: 2,
         log: true,
@@ -71,7 +71,7 @@ export const CONTROLS = {
     sep: {
         min: 1,
         max: 1e4,
-        value: 200,
+        value: 20,
         step: 0.01,
         prec: 1,
         log: true,

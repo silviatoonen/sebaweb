@@ -3,8 +3,8 @@
 // physics as the default build, but many more rows, so the graphs, the table and the movie are smoother.
 // (The single-star simulator runs it as a binary with a very wide orbit and a light companion.)
 import createSeBaHires from "./seba_hirestime.js";
-import * as C_S from "./constants-single.js";
-import * as C_B from "./constants-binary.js?v=2";
+import * as C_S from "./constants-single.js?v=2";
+import * as C_B from "./constants-binary.js?v=3";
 
 const params = new URLSearchParams(window.location.search);
 const VARIANT = params.get("variant");
@@ -606,7 +606,7 @@ function _t(key) {
 // The star movie: draws the result of a single-star run as an animation (see star-movie.js)
 async function initMovie() {
     try {
-        const { StarMovie, BinaryMovie } = await import("./star-movie.js?v=27");
+        const { StarMovie, BinaryMovie } = await import("./star-movie.js?v=28");
         // show the movie area first, so that the canvas can measure its size
         $id("star-movie").classList.replace("invisible", "visible");
         $id("gif-space").classList.add("invisible");
@@ -618,6 +618,8 @@ async function initMovie() {
             slider: $id("movie-slider"),
             speedSelect: $id("movie-speed"),
             downloadButton: $id("movie-download"),
+            // the input of the latest run, added to the name of the movie file
+            fileTag: () => runTag,
             onState: scheduleDot,
             t: _t,
             // the photo of the Crab Nebula is optional; when it is there, show who made it
@@ -671,6 +673,30 @@ function updateMovie() {
 }
 
 // Run SeBa
+// ===== file names of the downloads: they show the input of the run =====
+// e.g. single star: M10_z0.02_T13500; two stars: M10_m1.9_a20_e0_z0.02_T13500
+// (masses in solar masses, a in solar radii, T in Myr); a planet companion gives
+// m1Mearth, an orbit given as a period gives P100d instead of a20.
+// The values are taken at the moment of the run, so changing a slider afterwards does not
+// change the names of the files of that run.
+let runTag = "";
+
+function makeRunTag() {
+    const v = (id) => {
+        const el = $id(id);
+        return el ? el.value.trim().replace(/[^0-9a-zA-Z.+-]/g, "") : "";
+    };
+    if (VARIANT == "single") {
+        return `M${v("mass-input")}_z${v("metal-input")}_T${v("time-input")}`;
+    }
+    const m2 = companion === "planet" ? `m${v("mass2-input")}Mearth` : `m${v("mass2-input")}`;
+    const orbit = orbitMode === "period" ? `P${v("sep-input")}d` : `a${v("sep-input")}`;
+    return `M${v("mass1-input")}_${m2}_${orbit}_e${v("ecc-input")}_z${v("metal-input")}_T${v("time-input")}`;
+}
+
+// a file name with the input of the latest run: base_tag
+const withRunTag = (base) => (runTag ? `${base}_${runTag}` : base);
+
 async function runSeba() {
     $id("start-button").disabled = true;
     const Module = await createSeBa({
@@ -717,6 +743,8 @@ async function runSeba() {
                   "-z",
                   $id("metal-input").value.trim(),
               ];
+    // the input of this run, for the names of the downloaded files
+    runTag = makeRunTag();
     // Remove previous SeBa.data if it exists
     try {
         Module.FS.unlink("SeBa.data");
@@ -1180,7 +1208,7 @@ async function downloadGraph() {
             width: 1100,
             height: 650,
             scale: 2,
-            filename: document.documentElement.lang === "nl" ? "sterrenstrijd-grafiek" : "star-workshop-graph",
+            filename: withRunTag(document.documentElement.lang === "nl" ? "sterrenstrijd-grafiek" : "star-workshop-graph"),
         });
     } catch (error) {
         console.warn("Could not download the graph:", error);
@@ -1247,7 +1275,7 @@ function downloadData(excel = false) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = excel ? "SeBadata-excel.csv" : "SeBadata.csv";
+    link.download = `${withRunTag(excel ? "SeBadata-excel" : "SeBadata")}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -366,6 +366,7 @@ export class StarMovie {
         this.slider = opts.slider || null;
         this.speedSelect = opts.speedSelect || null;
         this.downloadBtn = opts.downloadButton || null;
+        this.fileTag = opts.fileTag || null; // optional: () => text added to the file name
         this.onState = opts.onState || null; // told about the state of the star at every frame
         this.recording = false;
         this.recCtx = null;
@@ -571,7 +572,9 @@ export class StarMovie {
         const lang = document.documentElement.lang || "en";
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `${lang === "nl" ? "sterrenstrijd-film" : "star-workshop-movie"}.${type.includes("mp4") ? "mp4" : "webm"}`;
+        const tag = typeof this.fileTag === "function" ? this.fileTag() : "";
+        const base = lang === "nl" ? "sterrenstrijd-film" : "star-workshop-movie";
+        link.download = `${base}${tag ? "_" + tag : ""}.${type.includes("mp4") ? "mp4" : "webm"}`;
         document.body.appendChild(link);
         link.click();
         link.remove();
