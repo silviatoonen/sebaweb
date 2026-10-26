@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SeBa population synthesis</title>
+    <link rel="icon" href="favicon-star.svg" type="image/svg+xml" />
+    <link rel="icon" href="favicon-star.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="apple-touch-icon-star.png" />
+    <link rel="stylesheet" href="base.css?v=21" />
+    <style>
+      /* page-specific: the form for a SeBa population run */
+      .pop-intro { max-width: 70ch; }
+      .pop-intro code, .pop-cmd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .88em; }
+      .pop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px 24px; margin: 1.2rem 0; }
+      .pop-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+      .pop-card h3 { margin: 0 0 .7rem; font-size: 1.05rem; }
+      .pop-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+      .pop-row.one { grid-template-columns: 1fr; }
+      .pop-card label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 3px; }
+      .pop-card label code { color: var(--ink); }
+      .pop-card input, .pop-card select { width: 100%; padding: 6px 8px; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
+      .pop-card input:invalid { border-color: #d9534f; }
+      .pop-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 1rem 0; }
+      .pop-actions button { font: inherit; font-weight: 600; padding: 10px 20px; border-radius: 8px; border: 0; cursor: pointer; background: var(--accent); color: var(--accent-ink); }
+      .pop-actions button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+      .pop-actions button:disabled { opacity: .5; cursor: not-allowed; }
+      .pop-actions label { display: flex; gap: 6px; align-items: center; font-size: .92rem; }
+      .pop-cmd { display: block; white-space: pre-wrap; word-break: break-all; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: .4rem 0 1rem; }
+      .pop-status { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+      .pop-bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; margin: .6rem 0; }
+      .pop-bar span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+      .pop-status p { margin: .3rem 0; }
+      .pop-warn { color: #c0392b; }
+      .pop-note { font-size: .9rem; color: var(--muted); }
+      #pop-download { display: none; font-weight: 600; padding: 10px 20px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); text-decoration: none; }
+      .pop-card label code { white-space: nowrap; }
+    </style>
+  </head>
+  <body>
+    <header id="header">
+      <nav id="nav">
+        <a class="brand" href="index.html"><span class="brand-name">Star Workshop</span><span class="brand-sub">SeBa population synthesis</span></a>
+      </nav>
+      <div id="banner">
+        <h1>SeBa population runs</h1>
+      </div>
+    </header>
+    <main>
+      <section>
+        <div class="pop-intro">
+          <p>Run a population of binaries with <a href="https://github.com/amusecode/seba" target="_blank" rel="noopener">SeBa</a> in your browser and download the data file. The initial masses, mass ratios, separations and eccentricities are drawn at random from the distributions you choose below (SeBa option <code>-R</code>).</p>
+          <p>The output is the usual <code>SeBa.data</code> file: one line per moment in the evolution of a binary when something changes. See the <a href="https://github.com/amusecode/seba#understanding-the-seba-output" target="_blank" rel="noopener">SeBa README</a> for the meaning of the columns.</p>
+          <p class="pop-note">Everything is computed on your own computer, so large runs can take a while. Keep this tab open and in front, and don't let your computer go to sleep. To combine several runs into one population, give each run a different <b>first ID</b> and a different <b>random seed</b>, then put the files after each other.</p>
+        </div>
+
+        <form id="pop-form" novalidate>
+          <div class="pop-grid">
+            <div class="pop-card">
+              <h3>Run</h3>
+              <div class="pop-row">
+                <div><label for="n">Number of systems <code>-n</code></label><input id="n" type="number" min="1" max="10000000" step="1" value="1000" required></div>
+                <div><label for="N">ID of the first system <code>-N</code></label><input id="N" type="number" min="0" step="1" value="1" required></div>
+              </div>
+              <div class="pop-row">
+                <div><label for="T">Maximum time in Myr <code>-T</code></label><input id="T" type="number" min="0.001" step="any" value="13500" required></div>
+                <div><label for="z">Metallicity <code>-z</code> (0.0001–0.03)</label><input id="z" type="number" min="0.0001" max="0.03" step="any" value="0.02" required></div>
+              </div>
+              <div class="pop-row one">
+                <div><label for="s">Random seed <code>-s</code> (10000 or higher)</label><input id="s" type="number" min="10000" step="1" required></div>
+              </div>
+            </div>
+
+            <div class="pop-card">
+              <h3>Primary mass <i>M</i>₁ (M☉)</h3>
+              <div class="pop-row">
+                <div><label for="m">Minimum <code>-m</code></label><input id="m" type="number" min="0.01" max="100" step="any" value="0.1" required></div>
+                <div><label for="M">Maximum <code>-M</code></label><input id="M" type="number" min="0.01" max="100" step="any" value="100" required></div>
+              </div>
+              <div class="pop-row">
+                <div><label for="f">Distribution <code>-f</code></label>
+                  <select id="f"><option value="0">Equal mass</option><option value="1">Power law</option><option value="2">Miller &amp; Scalo</option><option value="3">Scalo</option><option value="4" selected>Kroupa</option></select></div>
+                <div data-exp="f" data-show="1"><label for="x">Exponent <code>-x</code></label><input id="x" type="number" step="any" value="-2.35"></div>
+              </div>
+            </div>
+
+            <div class="pop-card">
+              <h3>Mass ratio <i>q</i> = <i>M</i>₂/<i>M</i>₁</h3>
+              <div class="pop-row">
+                <div><label for="q">Minimum <code>-q</code></label><input id="q" type="number" min="0" max="1" step="any" value="0" required></div>
+                <div><label for="Q">Maximum <code>-Q</code></label><input id="Q" type="number" min="0" max="1" step="any" value="1" required></div>
+              </div>
+              <div class="pop-row">
+                <div><label for="p">Distribution <code>-p</code></label>
+                  <select id="p"><option value="0">Constant</option><option value="1" selected>Flat</option><option value="2">Power law</option><option value="3">Hogeveen (1992)</option></select></div>
+                <div data-exp="p" data-show="2"><label for="w">Exponent <code>-w</code></label><input id="w" type="number" step="any" value="0"></div>
+              </div>
+            </div>
+
+            <div class="pop-card">
+              <h3>Separation <i>a</i> (R☉)</h3>
+              <div class="pop-row">
+                <div><label for="a">Minimum <code>-a</code></label><input id="a" type="number" min="0" step="any" value="0" required></div>
+                <div><label for="A">Maximum <code>-A</code></label><input id="A" type="number" min="0" step="any" value="1000000" required></div>
+              </div>
+              <div class="pop-row">
+                <div><label for="g">Distribution <code>-g</code></label>
+                  <select id="g"><option value="0">Constant</option><option value="1" selected>Power law</option><option value="2">Duquennoy &amp; Mayor (1987)</option><option value="3">Raghavan (2010)</option><option value="4">Eggleton (1999)</option></select></div>
+                <div data-exp="g" data-show="1"><label for="y">Exponent <code>-y</code> (−1: flat in log <i>a</i>)</label><input id="y" type="number" step="any" value="-1"></div>
+              </div>
+            </div>
+
+            <div class="pop-card">
+              <h3>Eccentricity <i>e</i></h3>
+              <div class="pop-row">
+                <div><label for="e">Minimum <code>-e</code></label><input id="e" type="number" min="0" max="1" step="any" value="0" required></div>
+                <div><label for="E">Maximum <code>-E</code></label><input id="E" type="number" min="0" max="1" step="any" value="1" required></div>
+              </div>
+              <div class="pop-row">
+                <div><label for="u">Distribution <code>-u</code></label>
+                  <select id="u"><option value="0">Constant</option><option value="1">Power law</option><option value="2" selected>Thermal</option></select></div>
+                <div data-exp="u" data-show="1"><label for="v">Exponent <code>-v</code></label><input id="v" type="number" step="any" value="0"></div>
+              </div>
+            </div>
+          </div>
+
+          <p class="pop-note">Equivalent SeBa command (the run is done in batches of <span id="batch-size"></span> systems; batch <i>k</i> uses seed <i>s</i> + <i>k</i> and first ID <i>N</i> + <i>k</i> × batch):</p>
+          <code class="pop-cmd" id="cmd"></code>
+
+          <div class="pop-actions">
+            <button type="submit" id="pop-start">Start run</button>
+            <button type="button" class="secondary" id="pop-stop" disabled>Stop</button>
+            <label><input type="checkbox" id="gzip" checked> Compress the file (gzip)</label>
+          </div>
+        </form>
+
+        <div class="pop-status" id="pop-status" hidden>
+          <p id="pop-msg"></p>
+          <div class="pop-bar"><span id="pop-bar"></span></div>
+          <p id="pop-numbers" class="pop-note"></p>
+          <div class="pop-actions">
+            <a class="btn" id="pop-download" download>Download the data file</a>
+            <button type="button" class="secondary" id="pop-info" hidden>Download run info</button>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="population.js?v=4"></script>
+  </body>
+</html>

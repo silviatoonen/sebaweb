@@ -54,7 +54,9 @@ const PLOTLY_LIGHT_MODE = {
 
 // Supported languages with a translation file
 const LANGUAGES = ["en", "nl"];
-const DEFAULT_LANG = "nl";
+// the language when the visitor has not chosen one yet: English on the English address
+// (starworkshop.org), Dutch everywhere else
+const DEFAULT_LANG = /(^|\.)starworkshop\.org$/.test(window.location.hostname) ? "en" : "nl";
 
 const stdoutElem = $q("#program-log output");
 
@@ -1339,7 +1341,9 @@ async function init() {
         createOrbitSwitch();
     }
     /* Get a default language setting from the local storage */
-    const lang = localStorage.getItem("lang") || DEFAULT_LANG;
+    // a language in the address (?lang=en or ?lang=nl) wins over the one chosen before
+    const asked = params.get("lang");
+    const lang = asked === "en" || asked === "nl" ? asked : localStorage.getItem("lang") || DEFAULT_LANG;
     setLabels(lang); // show the right language in the menu and footer straight away
 
     addEventListeners();

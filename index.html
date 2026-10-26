@@ -890,7 +890,12 @@ footer a{color:var(--hero-ink);opacity:.8;margin-right:16px}
   btns.forEach(function(b){b.addEventListener('click',function(){setLang(b.dataset.lang);});});
   // open in the language the visitor chose before, here or in a simulator
   (function(){var saved=null;try{saved=localStorage.getItem('lang');}catch(e){}
-    if(saved==='en'||saved==='nl')setLang(saved);})();
+    // a language in the address (?lang=en or ?lang=nl) wins, e.g. when starworkshop.org forwards here
+    var asked=new URLSearchParams(location.search).get('lang');
+    if(asked==='en'||asked==='nl')setLang(asked);
+    else if(saved==='en'||saved==='nl')setLang(saved);
+    // no choice yet: on the English address (starworkshop.org) start in English
+    else if(/(^|\.)starworkshop\.org$/.test(location.hostname))setLang('en');})();
   document.querySelectorAll('[data-open]').forEach(function(b){b.addEventListener('click',function(){document.getElementById(b.dataset.open).showModal();});});
   document.querySelectorAll('dialog').forEach(function(d){
     d.addEventListener('click',function(e){if(e.target===d)d.close();});
