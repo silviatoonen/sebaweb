@@ -11,9 +11,9 @@
     <link rel="icon" href="favicon-star.svg" type="image/svg+xml" />
     <link rel="icon" href="favicon-star.ico" sizes="any" />
     <link rel="apple-touch-icon" href="apple-touch-icon-star.png" />
-    <link rel="stylesheet" href="base.css?v=21" />
+    <link rel="stylesheet" href="base.css?v=23" />
     <script src="https://cdn.plot.ly/plotly-3.4.0.min.js" defer></script>
-    <script src="base.js?v=41" type="module"></script>
+    <script src="base.js?v=42" type="module"></script>
   </head>
   <body>
     <header id="header">
@@ -189,20 +189,19 @@
           <p class="movie-caption invisible" id="movie-credit" data-i8n="movie-credit"></p>
           <p class="movie-caption invisible" id="movie-credit-helix" data-i8n="movie-credit-helix"></p>
         </div>
-        <div id="plotly-graph"></div>
-        <div class="graph-actions">
-          <button type="button" id="download-graph" data-i8n="graph-download" disabled></button>
-          <div class="graph-style invisible" id="graph-preset-box">
-            <label for="graph-preset" data-i8n="graph-preset"></label>
-            <select name="preset" id="graph-preset">
-              <option value="radius" data-i8n="graph-preset-radius"></option>
-              <option value="hr" data-i8n="graph-preset-hr"></option>
-              <option value="mass" data-i8n="graph-preset-mass"></option>
-              <option value="custom" data-i8n="graph-preset-custom"></option>
-            </select>
-          </div>
+        <!-- choose a graph: one button per ready-made graph; the hidden menu keeps the choice for base.js -->
+        <div class="graph-pick invisible" id="graph-preset-box">
+          <p class="pick-label" id="graph-preset-label" data-i8n="graph-preset"></p>
+          <div class="pick-buttons" id="graph-preset-buttons" role="group" aria-labelledby="graph-preset-label"></div>
+          <select name="preset" id="graph-preset" hidden>
+            <option value="radius" data-i8n="graph-preset-radius"></option>
+            <option value="hr" data-i8n="graph-preset-hr"></option>
+            <option value="mass" data-i8n="graph-preset-mass"></option>
+            <option value="custom" data-i8n="graph-preset-custom"></option>
+          </select>
         </div>
-        <div class="axis-options">
+        <div class="axis-options" id="own-choice">
+          <p class="own-title" data-i8n="graph-own-title"></p>
             <div class="graph-style">
               <label for="graph-style" data-i8n="graph-style"></label>
               <select name="style" id="graph-style" disabled>
@@ -225,6 +224,10 @@
               <select name="yaxis" id="y-axis" disabled></select>
             </div>
           </div>
+        <div id="plotly-graph"></div>
+        <div class="graph-actions">
+          <button type="button" id="download-graph" data-i8n="graph-download" disabled></button>
+        </div>
         <p id="graph-caption" class="movie-caption" data-i8n="graph-caption-single"></p>
       </section>
 
@@ -235,7 +238,8 @@
         </button>
         <button id="download-data-excel" data-i8n="download-data-excel" disabled></button>
         <p class="movie-caption" data-i8n="download-data-note"></p>
-        <table id="data-table">
+        <!-- the table is filled but not shown; the data can be downloaded with the buttons above -->
+        <table id="data-table" hidden>
           <thead>
             <tr></tr>
           </thead>

@@ -14,6 +14,7 @@ export const LOG_R_LO = -2.3; // ~0.005 R☉: white dwarf sized and smaller
 export const LOG_R_HI = 3.3; //  ~2000 R☉: the largest red giants
 
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const PORTRAIT_MAX_W = 560; // narrower canvas (in CSS pixels): phone layout, see portraitOnPhone
 const lerp = (a, b, f) => a + (b - a) * f;
 const mix = (a, b, f) => a.map((v, i) => lerp(v, b[i], f));
 const css = (c, a = 1) =>
@@ -368,6 +369,9 @@ export class StarMovie {
         this.downloadBtn = opts.downloadButton || null;
         this.fileTag = opts.fileTag || null; // optional: () => text added to the file name
         this.onState = opts.onState || null; // told about the state of the star at every frame
+        // on a narrow screen (a phone) the movie becomes taller: the text goes in a band at the top and at
+        // the bottom, with the stars in between. Only for the simulators (the intro movies keep 16:9).
+        this.portraitOK = !!opts.portraitOnPhone;
         this.recording = false;
         this.recCtx = null;
 
@@ -379,6 +383,8 @@ export class StarMovie {
         this.speed = 1;
         this.p = 0;
         this.playing = false;
+        this.userPaused = false; // true after the pause button: then the slider does not restart the movie
+        this.scrubbing = false; // true while the slider is being dragged
         this.timeline = null;
         this.sec = 0; // clock for the idle animation (twinkling, churning surface)
         this.W = 960;
@@ -419,6 +425,7 @@ export class StarMovie {
             this.downloadBtn.disabled = !this.timeline;
         }
         this.p = 0;
+        this.userPaused = false;
         this._syncSlider();
         if (this.timeline && !this.reduced) {
             this.play();
@@ -446,7 +453,10 @@ export class StarMovie {
 
     refreshLabels() {
         if (this.playBtn) {
-            this.playBtn.textContent = this.t(this.playing ? "movie-pause" : "movie-play");
+            // the button shows what it does: pause while the movie plays (also while the slider is dragged
+            // in a playing movie, because it continues afterwards), play when it is paused
+            const showPause = this.playing || (this.scrubbing && this.wasPlaying);
+            this.playBtn.textContent = showPause ? `❚❚ ${this.t("movie-pause")}` : `▶\uFE0E ${this.t("movie-play")}`;
         }
         if (this.replayBtn) {
             this.replayBtn.textContent = this.t("movie-replay");
@@ -460,7 +470,19 @@ export class StarMovie {
 
     resize() {
         const w = this.canvas.clientWidth || 960;
-        const h = this.canvas.clientHeight || Math.round((w * 9) / 16);
+        let h;
+        if (this.portraitOK && w < PORTRAIT_MAX_W) {
+            // phone: the height follows from the bands of text and the room for the stars
+            h = Math.round(this._portraitHeight(w));
+            if (this.canvas.style.height !== `${h}px`) {
+                this.canvas.style.height = `${h}px`;
+            }
+        } else {
+            if (this.canvas.style.height) {
+                this.canvas.style.height = "";
+            }
+            h = this.canvas.clientHeight || Math.round((w * 9) / 16);
+        }
         this.dpr = Math.min(window.devicePixelRatio || 1, 2);
         this.W = w;
         this.H = h;
@@ -641,8 +663,10 @@ export class StarMovie {
         if (this.playBtn) {
             this.playBtn.addEventListener("click", () => {
                 if (this.playing) {
+                    this.userPaused = true;
                     this.pause();
                 } else {
+                    this.userPaused = false;
                     this.play();
                 }
             });
@@ -653,6 +677,7 @@ export class StarMovie {
                     return;
                 }
                 this.p = 0;
+                this.userPaused = false;
                 this.play();
             });
         }
@@ -660,10 +685,35 @@ export class StarMovie {
             this.downloadBtn.addEventListener("click", () => this.record());
         }
         if (this.slider) {
+            // dragging the slider: the movie follows the slider, and when the slider is let go the movie
+            // continues from there (unless it was paused with the pause button: then it stays paused)
+            const startScrub = () => {
+                if (!this.scrubbing) {
+                    this.scrubbing = true;
+                    this.wasPlaying = !!this.timeline && !this.userPaused;
+                    this.playing = false;
+                }
+            };
+            const endScrub = () => {
+                if (!this.scrubbing) {
+                    return;
+                }
+                this.scrubbing = false;
+                if (this.wasPlaying && this.p < 1) {
+                    this.play();
+                } else {
+                    this.refreshLabels();
+                }
+            };
+            this.slider.addEventListener("pointerdown", startScrub);
             this.slider.addEventListener("input", () => {
+                startScrub();
                 this.p = clamp(Number(this.slider.value) / 1000, 0, 1);
-                this.pause();
+                this.refreshLabels(); // also draws the new moment
             });
+            this.slider.addEventListener("change", endScrub); // let go (or a key press)
+            this.slider.addEventListener("pointerup", endScrub);
+            this.slider.addEventListener("pointercancel", endScrub);
         }
         if (this.speedSelect) {
             this.speedSelect.addEventListener("change", () => {
@@ -762,8 +812,16 @@ export class StarMovie {
         if (this.onState && !this._forRecording) {
             this.onState(s);
         }
+        // on a phone the star is drawn in the room between the two bands of text
+        const portrait = this._isPortrait();
+        const band = portrait ? this._bands(W) : null;
+        if (portrait) {
+            ctx.save();
+            ctx.translate(0, band.top);
+            this.H = H - band.top - band.bottom;
+        }
         const cx = W / 2;
-        const cy = H / 2;
+        const cy = this.H / 2;
         const r = this._radiusPx(s.R);
 
         this._drawSunRing(cx, cy);
@@ -774,13 +832,19 @@ export class StarMovie {
         } else if (s.type === 18) {
             this._drawNeutronStar(cx, cy, s.T);
         } else if (isWD(s.type)) {
-            this._drawWhiteDwarf(cx, cy, Math.max(r, 0.02 * H), s.T);
+            this._drawWhiteDwarf(cx, cy, Math.max(r, 0.02 * this.H), s.T);
         } else if (s.type !== 20) {
             this._drawStar(cx, cy, r, s.T, s.type);
         }
 
         this._drawEvents(cx, cy, r, true);
-        this._drawHUD(s, lang);
+        if (portrait) {
+            ctx.restore();
+            this.H = H;
+            this._drawHUDPortrait(s, lang, band);
+        } else {
+            this._drawHUD(s, lang);
+        }
         if (this._forRecording) {
             this._drawWatermark();
         }
@@ -994,44 +1058,69 @@ export class StarMovie {
         ctx.fill();
     }
 
+    // A black hole seen from above: a black disc, a bright ring of light that hugs it, and a soft
+    // lilac glow with swirling streaks that turn slowly round the hole (no tilted ring: that looked
+    // like Saturn).
     _drawBlackHole(cx, cy, k = 1) {
-        const { ctx, H } = this;
+        const { ctx, H, sec } = this;
         const rb = Math.max(10, 0.035 * H) * k;
-        // glowing disk behind and in front of the hole
-        const disk = (width, color, front) => {
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(-0.25);
-            ctx.strokeStyle = color;
-            ctx.lineWidth = width;
-            ctx.beginPath();
-            if (front) {
-                ctx.ellipse(0, 0, rb * 3.2, rb * 0.85, 0, 0, Math.PI);
-            } else {
-                ctx.ellipse(0, 0, rb * 3.2, rb * 0.85, 0, Math.PI, TAU);
-            }
-            ctx.stroke();
-            ctx.restore();
-        };
+        if (!this._bhStreaks) {
+            // the streaks are made once: radius (in hole radii), start angle, length, speed, brightness
+            const rnd = mulberry32(4242);
+            this._bhStreaks = Array.from({ length: 420 }, () => {
+                const r = 1.06 + 2.4 * rnd() ** 1.5; // more streaks close to the hole
+                return {
+                    r,
+                    a0: rnd() * TAU,
+                    len: 0.6 + rnd() * 1.6,
+                    speed: 0.35 / r ** 1.5, // the inside turns faster
+                    alpha: ((0.05 + 0.18 * rnd()) * (1 - ((r - 1.06) / 2.5) ** 1.5)) / r ** 0.6, // fading outwards
+                    w: 0.4 + rnd() * 0.9,
+                };
+            });
+        }
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
-        disk(rb * 0.55, "rgba(255,140,80,0.35)", false);
-        disk(rb * 0.2, "rgba(255,210,122,0.9)", false);
+
+        // the wide, soft glow
+        const glow = ctx.createRadialGradient(cx, cy, rb, cx, cy, rb * 3.8);
+        glow.addColorStop(0, "rgba(215,200,245,0.7)");
+        glow.addColorStop(0.15, "rgba(165,140,220,0.45)");
+        glow.addColorStop(0.45, "rgba(105,85,175,0.2)");
+        glow.addColorStop(1, "rgba(60,40,110,0)");
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(cx, cy, rb * 3.8, 0, TAU);
+        ctx.fill();
+
+        // the swirling streaks
+        ctx.lineCap = "round";
+        for (const st of this._bhStreaks) {
+            const a = st.a0 - sec * st.speed; // turning clockwise
+            ctx.strokeStyle = `rgba(225,215,250,${st.alpha.toFixed(3)})`;
+            ctx.lineWidth = st.w * Math.max(0.6, k);
+            ctx.beginPath();
+            ctx.arc(cx, cy, st.r * rb, a, a + st.len);
+            ctx.stroke();
+        }
+
+        // the bright ring right round the hole
+        const ring = ctx.createRadialGradient(cx, cy, rb * 0.98, cx, cy, rb * 1.45);
+        ring.addColorStop(0, "rgba(255,255,255,0.95)");
+        ring.addColorStop(0.25, "rgba(240,232,255,0.75)");
+        ring.addColorStop(0.6, "rgba(190,170,235,0.25)");
+        ring.addColorStop(1, "rgba(150,125,210,0)");
+        ctx.fillStyle = ring;
+        ctx.beginPath();
+        ctx.arc(cx, cy, rb * 1.45, 0, TAU);
+        ctx.fill();
         ctx.restore();
+
+        // the hole itself
         ctx.fillStyle = "#000";
         ctx.beginPath();
         ctx.arc(cx, cy, rb, 0, TAU);
         ctx.fill();
-        ctx.strokeStyle = "rgba(255,210,122,0.85)";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(cx, cy, rb + 1, 0, TAU);
-        ctx.stroke();
-        ctx.save();
-        ctx.globalCompositeOperation = "lighter";
-        disk(rb * 0.55, "rgba(255,140,80,0.35)", true);
-        disk(rb * 0.2, "rgba(255,230,170,0.95)", true);
-        ctx.restore();
     }
 
     // The supernova remnant: the photo of the Crab Nebula if it is available, otherwise a drawn look-alike
@@ -1150,6 +1239,126 @@ export class StarMovie {
             }
             ctx.restore();
         }
+    }
+
+    // The time, with the ruler under it (same as in the single-star movie)
+    _drawTimeRuler(s, lang, x, yLine, fs, barW = Math.min(this.W * 0.27, 260)) {
+        const { ctx } = this;
+        const { max, step, n } = this.timeline.axis;
+        const frac = (v) => clamp(v / max, 0, 1);
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#f2f5fb";
+        ctx.font = `600 ${fs * 1.5}px "Instrument Sans", system-ui, sans-serif`;
+        ctx.fillText(formatTime(s.t, lang, this.t), x, yLine - 16);
+        ctx.strokeStyle = "rgba(255,255,255,0.35)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x, yLine);
+        ctx.lineTo(x + barW, yLine);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255,255,255,0.75)";
+        for (let i = 0; i <= n; i++) {
+            const xi = x + barW * ((i * step) / max);
+            ctx.beginPath();
+            ctx.moveTo(xi, yLine);
+            ctx.lineTo(xi, yLine + 8);
+            ctx.stroke();
+        }
+        const unit =
+            max >= 1000
+                ? { f: 1e-3, name: this.t("movie-unit-gyr") }
+                : max >= 0.1
+                  ? { f: 1, name: this.t("movie-unit-myr") }
+                  : { f: 1e3, name: this.t("movie-unit-kyr") };
+        const numFont = fs * 0.8;
+        ctx.font = `${numFont}px "Instrument Sans", system-ui, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.fillStyle = "rgba(232,236,245,0.75)";
+        const label = (v) => (v * unit.f).toLocaleString(lang, { maximumFractionDigits: 2, useGrouping: false });
+        const widest = Math.max(...Array.from({ length: n + 1 }, (_, i) => ctx.measureText(label(i * step)).width));
+        const skip = Math.max(1, Math.ceil((widest + 8) / (barW / n)));
+        for (let i = 0; i <= n; i += skip) {
+            ctx.fillText(label(i * step), x + barW * ((i * step) / max), yLine + 8 + numFont + 2);
+        }
+        ctx.textAlign = "left";
+        ctx.fillStyle = "rgba(232,236,245,0.5)";
+        ctx.fillText(unit.name, x + barW + 8, yLine + 4);
+        for (const ev of this.timeline.events) {
+            ctx.fillStyle = ev.kind === "supernova" ? "#ff9d6a" : ev.kind === "merger" ? "#ffd27a" : "#78dcff";
+            ctx.fillRect(x + barW * frac(ev.t) - 1, yLine - 9, 2, 8);
+        }
+        const xd = x + barW * frac(s.t);
+        ctx.strokeStyle = "#3dc1b2";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(x, yLine);
+        ctx.lineTo(xd, yLine);
+        ctx.stroke();
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(xd, yLine, 5, 0, TAU);
+        ctx.fill();
+    }
+
+    // ----- phone layout (see portraitOnPhone)
+    _isPortrait() {
+        return this.portraitOK && !this._forRecording && this.W < PORTRAIT_MAX_W;
+    }
+
+    // The bands of text at the top (time and ruler) and at the bottom (the numbers), in pixels
+    _bands(W) {
+        const fs = clamp(W / 30, 11, 13);
+        const lh = fs * 1.45;
+        const pad = 12;
+        const yLine = pad + fs * 1.2 + 16; // the line of the time ruler (the time is written above it)
+        const top = yLine + 8 + fs * 0.8 + 12;
+        const bottom = 4 * lh + pad + 4;
+        return { fs, lh, pad, yLine, top, bottom };
+    }
+
+    _portraitHeight(W) {
+        const b = this._bands(W);
+        return b.top + W * 0.8 + b.bottom;
+    }
+
+    // The single star on a phone: time and ruler at the top, the numbers at the bottom
+    _drawHUDPortrait(s, lang, b) {
+        const { ctx, W, H } = this;
+        const { fs, lh, pad } = b;
+        const x = pad;
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.85)";
+        ctx.shadowBlur = 4;
+        ctx.textBaseline = "alphabetic";
+        this._drawTimeRuler(s, lang, x, b.yLine, fs, W * 0.55);
+        const info = this._singleInfo(s, lang);
+        ctx.textAlign = "left";
+        ctx.font = `${fs}px "Instrument Sans", system-ui, sans-serif`;
+        let y = H - b.bottom + fs;
+        for (const [name, value] of info) {
+            ctx.fillStyle = "rgba(232,236,245,0.55)";
+            ctx.fillText(name, x, y);
+            ctx.fillStyle = "rgba(242,245,251,0.95)";
+            ctx.fillText(value, x + fs * 7.5, y);
+            y += lh;
+        }
+        ctx.restore();
+    }
+
+    // radius, temperature, mass and phase of the single star
+    _singleInfo(s, lang) {
+        const info = [
+            [this.t("movie-radius"), formatRadius(s.R, lang, this.t)],
+            [this.t("movie-temp"), `${(Math.round(s.T / 10) * 10).toLocaleString(lang)} ${this.t("unit-kelvin")}`],
+        ];
+        if (Number.isFinite(s.m)) {
+            info.push([
+                this.t("movie-mass"),
+                `${s.m.toLocaleString(lang, { minimumFractionDigits: s.m < 1 ? 3 : 2, maximumFractionDigits: s.m < 1 ? 3 : 2 })} ${this.t("unit-mass")}`,
+            ]);
+        }
+        info.push([this.t("movie-phase"), this.t(`type-${s.type}`)]);
+        return info;
     }
 
     // Lower left: the time, a ruler (in billions or millions of years) with a travelling dot, then the other information
@@ -1293,13 +1502,22 @@ export function buildBinaryTimeline(rows) {
     let tEnd = 0;
     for (let i = 0; i < rows.time.length; i++) {
         const t = rows.time[i];
-        const m1 = rows.m1[i];
-        const R1 = rows.r1[i];
-        const T1 = rows.T1[i];
+        const bt = rows.bintype ? Math.round(rows.bintype[i]) : 0;
+        let m1 = rows.m1[i];
+        let R1 = rows.r1[i];
+        let T1 = rows.T1[i];
+        let ty1 = Math.round(rows.ty1[i]);
+        // after a merger SeBa goes on with one star, and that can be in the columns of star 2 (star 1
+        // then has mass 0): the movie always follows the merged star, which is the heavier of the two
+        if (bt === 7 && Number.isFinite(rows.m2[i]) && rows.m2[i] > (Number.isFinite(m1) ? m1 : 0) && rows.T2[i] > 0) {
+            m1 = rows.m2[i];
+            R1 = rows.r2[i];
+            T1 = rows.T2[i];
+            ty1 = rows.ty2 ? Math.round(rows.ty2[i]) : 3;
+        }
         if (![t, m1, R1, T1].every(Number.isFinite) || T1 <= 0) {
             continue;
         }
-        const bt = rows.bintype ? Math.round(rows.bintype[i]) : 0;
         const tt = rows.tt ? Math.round(rows.tt[i]) : NaN; // type of mass transfer (1, 2, 3: stable)
         const ty2 = rows.ty2 ? Math.round(rows.ty2[i]) : 3;
         const m2 = rows.m2[i];
@@ -1320,7 +1538,7 @@ export function buildBinaryTimeline(rows) {
             m1,
             R1: Math.max(R1, 1e-9),
             T1,
-            ty1: Math.round(rows.ty1[i]),
+            ty1,
             m2: has2 ? m2 : NaN,
             R2: has2 ? Math.max(R2, 1e-9) : NaN,
             T2: has2 ? T2 : NaN,
@@ -1592,6 +1810,7 @@ export class BinaryMovie extends StarMovie {
             this.downloadBtn.disabled = !this.timeline;
         }
         this.p = 0;
+        this.userPaused = false;
         this._syncSlider();
         if (this.timeline && !this.reduced) {
             this.play();
@@ -1635,12 +1854,32 @@ export class BinaryMovie extends StarMovie {
             this.orbitPhase = (this.orbitPhase ?? 0) + (TAU / 6) * rate * Math.max(0, dt);
         }
 
+        // on a phone the stars are drawn in the room between the two bands of text
+        const portrait = this._isPortrait();
+        const band = portrait ? this._bands(W) : null;
+        this._portraitScene = portrait;
+        this._pendingScale = null;
+        if (portrait) {
+            ctx.save();
+            ctx.translate(0, band.top);
+            this.H = H - band.top - band.bottom;
+        }
         if (s.has2) {
             this._drawPair(s);
         } else {
             this._drawAlone(s);
         }
-        this._drawHUD(s, lang);
+        if (portrait) {
+            ctx.restore();
+            this.H = H;
+            this._portraitScene = false;
+            if (this._pendingScale) {
+                this._drawScaleBar(this._pendingScale); // top right of the whole picture
+            }
+            this._drawHUDPortrait(s, lang, band);
+        } else {
+            this._drawHUD(s, lang);
+        }
         if (this._forRecording) {
             this._drawWatermark();
         }
@@ -1850,7 +2089,11 @@ export class BinaryMovie extends StarMovie {
         }
         ctx.restore();
         this._drawEventsB(where, Math.max(r1, r2), true);
-        this._drawScaleBar(S);
+        if (this._portraitScene) {
+            this._pendingScale = S; // drawn after the stars, in the band at the top
+        } else {
+            this._drawScaleBar(S);
+        }
     }
 
     // Draws one object, whatever it is (k: size factor of the compact objects)
@@ -2220,6 +2463,112 @@ export class BinaryMovie extends StarMovie {
 
     // ----- text: time and ruler and star 1 at the lower left, star 2 at the lower right,
     // the orbit at the upper left and what the two stars are doing in the middle at the top
+    // ----- phone layout: time, ruler and what the stars are doing at the top; the orbit, star 1 and
+    // star 2 below each other at the bottom
+    _bands(W) {
+        const b = super._bands(W);
+        b.yStatus = b.yLine + 8 + b.fs * 0.8 + 2 + b.fs * 1.5;
+        b.top = b.yStatus + 12;
+        b.gap = b.lh * 0.4;
+        b.bottom = 14 * b.lh + 2 * b.gap + b.pad; // 3 headings + 3 lines orbit + 2 x 4 lines stars
+        return b;
+    }
+
+    _drawHUDPortrait(s, lang, b) {
+        const { ctx, H } = this;
+        const t = this.t;
+        const { fs, lh, pad, gap } = b;
+        const x = pad;
+        const xv = x + fs * 7.5;
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.85)";
+        ctx.shadowBlur = 4;
+        ctx.textBaseline = "alphabetic";
+
+        // top: the time with the ruler, and under it what the two stars are doing
+        this._drawTimeRuler(s, lang, x, b.yLine, fs, this.W * 0.5);
+        const status = s.unst ? t("transfertype-4") : s.stab ? t("transfertype-1") : t(`bintype-${s.bt}`);
+        if (status) {
+            const hot = isMT(s.bt) || s.bt === 7 || s.bt === DISRUPTED;
+            ctx.textAlign = "left";
+            ctx.font = `600 ${fs * 1.1}px "Instrument Sans", system-ui, sans-serif`;
+            ctx.fillStyle = hot ? "#ffb27a" : "rgba(232,236,245,0.6)";
+            ctx.fillText(status, x, b.yStatus);
+        }
+
+        // bottom: the orbit, star 1, star 2 (with one star left, e.g. after a merger: at the very bottom)
+        let y = s.has2 ? H - b.bottom + fs : H - pad - 5 * lh + fs;
+        const heading = (text, color) => {
+            ctx.textAlign = "left";
+            ctx.font = `600 ${fs}px "Instrument Sans", system-ui, sans-serif`;
+            ctx.fillStyle = color;
+            ctx.fillText(text, x, y);
+            y += lh;
+        };
+        const lines = (rows) => {
+            ctx.font = `${fs}px "Instrument Sans", system-ui, sans-serif`;
+            for (const [name, value] of rows) {
+                ctx.fillStyle = "rgba(232,236,245,0.55)";
+                ctx.fillText(name, x, y);
+                ctx.fillStyle = "rgba(242,245,251,0.95)";
+                ctx.fillText(value, xv, y);
+                y += lh;
+            }
+        };
+        if (s.has2) {
+            heading(t("movie-orbit"), "rgba(232,236,245,0.85)");
+            lines(this._orbitLines(s, lang));
+            y += gap;
+        }
+        const title1 = !s.has2 && s.bt === 7 ? t("movie-merged") : `${t("movie-star")} 1`; // after a merger: one star
+        heading(title1, css(mix(starColor(s.T1), [255, 255, 255], 0.3)));
+        lines(this._starLines(s.m1, s.R1, s.T1, s.ty1, lang));
+        if (s.has2) {
+            y += gap;
+            if (s.ty2 === 1) {
+                heading(t("movie-planet"), css(mix([120, 170, 255], [255, 255, 255], 0.3)));
+            } else {
+                heading(`${t("movie-star")} 2`, css(mix(starColor(s.T2), [255, 255, 255], 0.3)));
+            }
+            lines(this._starLines(s.m2, s.R2, s.T2, s.ty2, lang));
+        }
+        ctx.restore();
+    }
+
+    // radius, temperature, mass and phase of one star (or planet)
+    _starLines(m, R, T, type, lang) {
+        const t = this.t;
+        const planetMass = (mm) => {
+            const me = mm * 332946;
+            return me < 100
+                ? `${me.toLocaleString(lang, { maximumSignificantDigits: 3 })} ${t("unit-earth-mass")}`
+                : `${(me / 317.83).toLocaleString(lang, { maximumSignificantDigits: 3 })} ${t("unit-jupiter-mass")}`;
+        };
+        const planetRadius = (RR) => `${(RR / 0.009168).toLocaleString(lang, { maximumSignificantDigits: 3 })} ${t("unit-earth-radius")}`;
+        return [
+            [t("movie-radius"), type === 1 ? planetRadius(R) : formatRadius(R, lang, t)],
+            [t("movie-temp"), `${(Math.round(T / 10) * 10).toLocaleString(lang)} ${t("unit-kelvin")}`],
+            [
+                t("movie-mass"),
+                type === 1
+                    ? planetMass(m)
+                    : `${m.toLocaleString(lang, { minimumFractionDigits: m < 1 ? 3 : 2, maximumFractionDigits: m < 1 ? 3 : 2 })} ${t("unit-mass")}`,
+            ],
+            [t("movie-phase"), t(`type-${type}`)],
+        ];
+    }
+
+    // period, separation and eccentricity of the orbit
+    _orbitLines(s, lang) {
+        const t = this.t;
+        const days = 365.25 * Math.sqrt((s.sep / 215.032) ** 3 / (s.m1 + s.m2));
+        return [
+            [t("movie-period"), days > 0 ? formatPeriod(days, lang, t) : "–"],
+            [t("movie-sep"), `${s.sep.toLocaleString(lang, { maximumFractionDigits: s.sep < 10 ? 1 : 0 })} ${t("unit-sep")}`],
+            [t("movie-ecc"), s.ecc.toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 })],
+        ];
+    }
+
     _drawHUD(s, lang) {
         const { ctx, W, H } = this;
         const t = this.t;
@@ -2275,7 +2624,8 @@ export class BinaryMovie extends StarMovie {
                 ctx.fillText(value, align === "left" ? x + fs * 8.5 : x, y);
             }
         };
-        block(left, `${t("movie-star")} 1`, starColor(s.T1), xl, "left");
+        const title1 = !s.has2 && s.bt === 7 ? t("movie-merged") : `${t("movie-star")} 1`; // after a merger: one star
+        block(left, title1, starColor(s.T1), xl, "left");
         if (s.has2) {
             if (s.ty2 === 1) {
                 block(right, t("movie-planet"), [120, 170, 255], xr, "right");
@@ -2316,65 +2666,5 @@ export class BinaryMovie extends StarMovie {
 
         this._drawTimeRuler(s, lang, xl, infoTop - 8 - fs * 0.85 - fs * 0.5, fs);
         ctx.restore();
-    }
-
-    // The time, with the ruler under it (same as in the single-star movie)
-    _drawTimeRuler(s, lang, x, yLine, fs) {
-        const { ctx, W } = this;
-        const barW = Math.min(W * 0.27, 260);
-        const { max, step, n } = this.timeline.axis;
-        const frac = (v) => clamp(v / max, 0, 1);
-        ctx.textAlign = "left";
-        ctx.fillStyle = "#f2f5fb";
-        ctx.font = `600 ${fs * 1.5}px "Instrument Sans", system-ui, sans-serif`;
-        ctx.fillText(formatTime(s.t, lang, this.t), x, yLine - 16);
-        ctx.strokeStyle = "rgba(255,255,255,0.35)";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(x, yLine);
-        ctx.lineTo(x + barW, yLine);
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(255,255,255,0.75)";
-        for (let i = 0; i <= n; i++) {
-            const xi = x + barW * ((i * step) / max);
-            ctx.beginPath();
-            ctx.moveTo(xi, yLine);
-            ctx.lineTo(xi, yLine + 8);
-            ctx.stroke();
-        }
-        const unit =
-            max >= 1000
-                ? { f: 1e-3, name: this.t("movie-unit-gyr") }
-                : max >= 0.1
-                  ? { f: 1, name: this.t("movie-unit-myr") }
-                  : { f: 1e3, name: this.t("movie-unit-kyr") };
-        const numFont = fs * 0.8;
-        ctx.font = `${numFont}px "Instrument Sans", system-ui, sans-serif`;
-        ctx.textAlign = "center";
-        ctx.fillStyle = "rgba(232,236,245,0.75)";
-        const label = (v) => (v * unit.f).toLocaleString(lang, { maximumFractionDigits: 2, useGrouping: false });
-        const widest = Math.max(...Array.from({ length: n + 1 }, (_, i) => ctx.measureText(label(i * step)).width));
-        const skip = Math.max(1, Math.ceil((widest + 8) / (barW / n)));
-        for (let i = 0; i <= n; i += skip) {
-            ctx.fillText(label(i * step), x + barW * ((i * step) / max), yLine + 8 + numFont + 2);
-        }
-        ctx.textAlign = "left";
-        ctx.fillStyle = "rgba(232,236,245,0.5)";
-        ctx.fillText(unit.name, x + barW + 8, yLine + 4);
-        for (const ev of this.timeline.events) {
-            ctx.fillStyle = ev.kind === "supernova" ? "#ff9d6a" : ev.kind === "merger" ? "#ffd27a" : "#78dcff";
-            ctx.fillRect(x + barW * frac(ev.t) - 1, yLine - 9, 2, 8);
-        }
-        const xd = x + barW * frac(s.t);
-        ctx.strokeStyle = "#3dc1b2";
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(x, yLine);
-        ctx.lineTo(xd, yLine);
-        ctx.stroke();
-        ctx.fillStyle = "#fff";
-        ctx.beginPath();
-        ctx.arc(xd, yLine, 5, 0, TAU);
-        ctx.fill();
     }
 }

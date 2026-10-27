@@ -435,7 +435,7 @@ function updateMinMax() {
 async function loadTranslations() {
     for (const lang of LANGUAGES) {
         try {
-            const response = await fetch(`${lang}.json?v=6`); // ?v: load the new texts after a change
+            const response = await fetch(`${lang}.json?v=8`); // ?v: load the new texts after a change
 
             if (!response.ok) {
                 throw new Error(`Could not fetch ${lang}.json`);
@@ -608,7 +608,7 @@ function _t(key) {
 // The star movie: draws the result of a single-star run as an animation (see star-movie.js)
 async function initMovie() {
     try {
-        const { StarMovie, BinaryMovie } = await import("./star-movie.js?v=28");
+        const { StarMovie, BinaryMovie } = await import("./star-movie.js?v=29");
         // show the movie area first, so that the canvas can measure its size
         $id("star-movie").classList.replace("invisible", "visible");
         $id("gif-space").classList.add("invisible");
@@ -620,6 +620,8 @@ async function initMovie() {
             slider: $id("movie-slider"),
             speedSelect: $id("movie-speed"),
             downloadButton: $id("movie-download"),
+            // on a phone: a taller movie, with the text above and below the stars
+            portraitOnPhone: true,
             // the input of the latest run, added to the name of the movie file
             fileTag: () => runTag,
             onState: scheduleDot,
@@ -1115,6 +1117,38 @@ function buildGraph(options = {}) {
         legend: { orientation: "h", x: 0, y: 1.12, font: { size: 12 } },
         hovermode: "closest",
     };
+    // On a phone the legend above the graph wraps over several rows and then covers the graph.
+    // There it goes to the bottom of the picture instead, under the x-axis, and the picture gets
+    // taller by the height of the legend, so the graph itself keeps its size.
+    const graphWidth = $id("plotly-graph")?.clientWidth || 1000;
+    if (types && !forExport && graphWidth < 600) {
+        const fontSize = 11;
+        const names = traces.filter((tr) => tr.showlegend && tr.name).map((tr) => tr.name);
+        // a rough (rather generous) estimate of the number of rows the legend needs
+        let rows = names.length ? 1 : 0;
+        let used = 0;
+        for (const name of names) {
+            const w = 50 + name.length * fontSize * 0.6;
+            if (used > 0 && used + w > graphWidth - 20) {
+                rows += 1;
+                used = 0;
+            }
+            used += w;
+        }
+        const legendH = rows * (fontSize + 9) + 8;
+        layout.legend = {
+            orientation: "h",
+            x: 0,
+            xanchor: "left",
+            xref: "container",
+            y: 0,
+            yanchor: "bottom",
+            yref: "container",
+            font: { size: fontSize },
+        };
+        layout.margin = { ...layout.margin, t: 20, b: layout.margin.b + legendH };
+        layout.height = layout.height - 30 + legendH;
+    }
     if (forExport) {
         layout.annotations = [
             {
@@ -1133,7 +1167,17 @@ function buildGraph(options = {}) {
     return { traces, layout, xaxis, yaxis, xtype, ytype, dotIndex: dot };
 }
 
+// when the screen turns (phone upright or sideways), the legend may have to move: draw the graph again
+let graphWasNarrow = null;
+window.addEventListener("resize", () => {
+    const narrow = ($id("plotly-graph")?.clientWidth || 1000) < 600;
+    if (graphWasNarrow !== null && narrow !== graphWasNarrow && Object.keys(data).length) {
+        plot();
+    }
+});
+
 function plot() {
+    graphWasNarrow = ($id("plotly-graph")?.clientWidth || 1000) < 600;
     const g = buildGraph();
     currentAxes = { x: g.xaxis, y: g.yaxis, xtype: g.xtype, ytype: g.ytype };
     dotIndex = g.dotIndex;
@@ -1220,6 +1264,40 @@ async function downloadGraph() {
     }
 }
 
+// The ready-made graphs as a row of buttons (one per option of the hidden menu #graph-preset,
+// which keeps the choice). "Your own choice" lights up by itself when one of the three menus
+// (scale, x-axis, y-axis) is changed.
+function makePresetButtons() {
+    const select = $id("graph-preset");
+    const box = $id("graph-preset-buttons");
+    box.replaceChildren(
+        ...[...select.options].map((option) => {
+            const button = $create("button");
+            button.type = "button";
+            button.dataset.preset = option.value;
+            button.dataset.i8n = `graph-btn-${option.value}`;
+            button.addEventListener("click", () => {
+                select.value = option.value;
+                syncPresetButtons();
+                if (option.value === "custom") {
+                    $id("x-axis").focus(); // the menus for your own choice are right below
+                } else {
+                    applyPreset(option.value);
+                }
+            });
+            return button;
+        }),
+    );
+    syncPresetButtons();
+}
+
+function syncPresetButtons() {
+    const value = $id("graph-preset").value;
+    $qa("#graph-preset-buttons button").forEach((button) =>
+        button.setAttribute("aria-pressed", button.dataset.preset === value ? "true" : "false"),
+    );
+}
+
 // Things that depend on the simulator: name of step 2, ready-made graphs, text under the graph
 function initGraphUI() {
     $id("graph-heading").dataset.i8n = "header-graph-movie";
@@ -1235,6 +1313,7 @@ function initGraphUI() {
             }),
         );
     }
+    makePresetButtons();
     $id("graph-preset-box").classList.replace("invisible", "visible");
     $id("movie-caption").dataset.i8n =
         VARIANT == "single" ? "movie-caption" : "movie-caption-binary";
@@ -1289,7 +1368,6 @@ function addEventListeners() {
     $id("download-data").addEventListener("click", () => downloadData(false));
     $id("download-data-excel").addEventListener("click", () => downloadData(true));
     $id("download-graph").addEventListener("click", downloadGraph);
-    $id("graph-preset").addEventListener("change", (event) => applyPreset(event.target.value));
     document.querySelectorAll(".lang button").forEach((button) => {
         button.addEventListener("click", () => switchLang(button.dataset.lang));
     });
@@ -1299,6 +1377,7 @@ function addEventListeners() {
         newElem.value = elem.value;
         newElem.addEventListener("change", () => {
             $id("graph-preset").value = "custom";
+            syncPresetButtons();
             plot();
             populateTable();
         });
@@ -1306,6 +1385,49 @@ function addEventListeners() {
         parent.replaceChild(newElem, elem);
     }
 
+}
+
+// ===== info balloons (the i): keep them on the screen =====
+// A balloon is centred above its i. On a phone an i close to the edge of the screen would push
+// the balloon off the screen, so just before it opens it is moved sideways (and, if there is no
+// room above, shown below the i). The i can also be tapped (tabindex), which a phone needs.
+function placeTooltip(tip) {
+    const text = tip.querySelector(".tooltiptext");
+    if (!text) {
+        return;
+    }
+    const margin = 12;
+    text.style.setProperty("--shift", "0px");
+    tip.classList.remove("below");
+    let box = text.getBoundingClientRect();
+    if (box.top < margin) {
+        tip.classList.add("below");
+        box = text.getBoundingClientRect();
+    }
+    const width = document.documentElement.clientWidth;
+    let shift = 0;
+    if (box.left < margin) {
+        shift = margin - box.left;
+    } else if (box.right > width - margin) {
+        shift = width - margin - box.right;
+    }
+    text.style.setProperty("--shift", `${shift}px`);
+}
+
+function setupTooltips() {
+    $qa(".tooltip").forEach((tip) => tip.setAttribute("tabindex", "0"));
+    for (const type of ["pointerenter", "focusin"]) {
+        document.addEventListener(
+            type,
+            (event) => {
+                const tip = event.target instanceof Element && event.target.closest(".tooltip");
+                if (tip) {
+                    placeTooltip(tip);
+                }
+            },
+            true,
+        );
+    }
 }
 
 async function init() {
@@ -1347,6 +1469,7 @@ async function init() {
     setLabels(lang); // show the right language in the menu and footer straight away
 
     addEventListeners();
+    setupTooltips(); // after the controls (and their i) are made
 
     await loadTranslations();
     switchLang(lang);

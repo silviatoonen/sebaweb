@@ -123,10 +123,14 @@ input[type="checkbox"] { accent-color:var(--accent); }
 
 /* Info balloons: same style as the pop-ups */
 .tooltip { position:relative; display:inline-block; cursor:help; color:var(--muted); }
-.tooltip .tooltiptext { visibility:hidden; position:absolute; z-index:5; bottom:125%; left:50%; transform:translateX(-50%);
-  width:max-content; max-width:260px; padding:10px 12px; border-radius:8px; font-size:.85rem; line-height:1.45; text-align:left;
+.tooltip .tooltiptext { visibility:hidden; position:absolute; z-index:5; bottom:125%; left:50%;
+  /* --shift is set by base.js, so that the balloon stays on the screen (on a phone the i can be near the edge) */
+  transform:translateX(calc(-50% + var(--shift, 0px)));
+  width:max-content; max-width:min(260px, calc(100vw - 24px)); padding:10px 12px; border-radius:8px; font-size:.85rem; line-height:1.45; text-align:left;
   background:#0f1b3d; color:#f2f5fb; border:1.5px solid var(--turq); box-shadow:0 8px 24px rgba(7,12,26,.35); }
 .tooltip:hover .tooltiptext, .tooltip:focus-within .tooltiptext { visibility:visible; }
+/* no room above the i: show the balloon below it */
+.tooltip.below .tooltiptext { bottom:auto; top:125%; }
 
 /* Buttons */
 button { font:inherit; font-weight:600; cursor:pointer; border-radius:8px; padding:11px 24px; border:0; background:var(--accent); color:var(--accent-ink); }
@@ -145,6 +149,16 @@ select { font:inherit; padding:7px 8px; color:var(--ink); background:var(--surfa
 select:disabled { opacity:.5; cursor:not-allowed; }
 
 .graph-actions { display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px; margin:14px 0 12px; }
+/* choose a graph: a row of buttons; the chosen one is green (like NL | EN) */
+.graph-pick { margin:0 0 12px; }
+.pick-label { margin:0 0 6px; font-weight:600; }
+.pick-buttons { display:flex; flex-wrap:wrap; gap:8px; }
+.pick-buttons button { font-size:.88rem; padding:7px 14px; background:transparent; color:var(--ink); border:1px solid var(--line); }
+.pick-buttons button[aria-pressed="true"] { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+.pick-buttons button:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+/* the menus of "your own choice", in a light frame, right under the buttons */
+#own-choice { padding:10px 14px 12px; border:1px solid var(--line); border-radius:10px; }
+#own-choice .own-title { grid-column:1/-1; margin:0 0 2px; font-size:.88rem; font-weight:600; color:var(--muted); }
 .graph-actions button { padding:8px 16px; }
 
 /* Results */
