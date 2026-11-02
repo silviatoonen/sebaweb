@@ -136,6 +136,10 @@ footer a{color:var(--hero-ink);opacity:.8;margin-right:16px}
 @media (max-width:760px){section{padding:56px 0}.about,.tool{grid-template-columns:1fr}.tool:nth-of-type(even) .fig{order:0}nav .brand{font-size:1.1rem}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
+    <!-- anonymous visitor counts (GoatCounter, no cookies); see track.js -->
+    <script src="track.js?v=1"></script>
+    <script data-goatcounter="https://sebaweb.goatcounter.com/count" data-goatcounter-settings='{"no_onload": true}'
+            async src="//gc.zgo.at/count.js" onload="gcReady()"></script>
 </head>
 <body>
 
@@ -895,7 +899,9 @@ footer a{color:var(--hero-ink);opacity:.8;margin-right:16px}
     if(asked==='en'||asked==='nl')setLang(asked);
     else if(saved==='en'||saved==='nl')setLang(saved);
     // no choice yet: on the English address (starworkshop.org) start in English
-    else if(/(^|\.)starworkshop\.org$/.test(location.hostname))setLang('en');})();
+    else if(/(^|\.)starworkshop\.org$/.test(location.hostname))setLang('en');
+    // count the visit, with the language it opens in
+    if(window.trackPage)trackPage();})();
   document.querySelectorAll('[data-open]').forEach(function(b){b.addEventListener('click',function(){document.getElementById(b.dataset.open).showModal();});});
   document.querySelectorAll('dialog').forEach(function(d){
     d.addEventListener('click',function(e){if(e.target===d)d.close();});

@@ -122,6 +122,9 @@ function start(e) {
     const seed = parseInt($("s").value, 10);
     const gzip = $("gzip").checked && "CompressionStream" in self;
     lastRun = { n, first, seed, gzip, options: options(), started: new Date() };
+    if (window.trackEvent) {
+        window.trackEvent("population started", { noLang: true }); // anonymous count, see track.js
+    }
 
     worker = new Worker("pop-worker.js?v=2", { type: "module" });
     worker.onmessage = (ev) => {

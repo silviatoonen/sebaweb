@@ -701,8 +701,16 @@ function makeRunTag() {
 // a file name with the input of the latest run: base_tag
 const withRunTag = (base) => (runTag ? `${base}_${runTag}` : base);
 
+// anonymous counts (see track.js): what is used, in which simulator and language
+const track = (what) => {
+    if (window.trackEvent) {
+        window.trackEvent(what);
+    }
+};
+
 async function runSeba() {
     $id("start-button").disabled = true;
+    track("simulation started");
     const Module = await createSeBa({
         print: (text) => appendOutput(text),
         printErr: (text) => appendOutput(text),
@@ -1243,6 +1251,7 @@ async function downloadGraph() {
     if (!Object.keys(data).length) {
         return;
     }
+    track("graph downloaded");
     const g = buildGraph({ light: true, forExport: true, height: 650 });
     const holder = document.createElement("div");
     holder.style.cssText = "position:fixed;left:-10000px;top:0;width:1100px;height:650px;";
@@ -1351,6 +1360,7 @@ function dataToCSV(excel = false) {
 }
 
 function downloadData(excel = false) {
+    track(excel ? "Excel data downloaded" : "data downloaded");
     const csv = (excel ? "\ufeff" : "") + dataToCSV(excel);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -1365,6 +1375,7 @@ function downloadData(excel = false) {
 
 function addEventListeners() {
     $id("start-button").addEventListener("click", runSeba);
+    $id("movie-download").addEventListener("click", () => track("movie downloaded"));
     $id("download-data").addEventListener("click", () => downloadData(false));
     $id("download-data-excel").addEventListener("click", () => downloadData(true));
     $id("download-graph").addEventListener("click", downloadGraph);
@@ -1473,6 +1484,9 @@ async function init() {
 
     await loadTranslations();
     switchLang(lang);
+    if (window.trackPage) {
+        window.trackPage(); // count the visit, with the language it opens in
+    }
     $id("start-button").disabled = false;
     initMovie();
 }

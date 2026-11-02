@@ -36,6 +36,10 @@
       #pop-download { display: none; font-weight: 600; padding: 10px 20px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); text-decoration: none; }
       .pop-card label code { white-space: nowrap; }
     </style>
+    <!-- anonymous visitor counts (GoatCounter, no cookies); see track.js -->
+    <script src="track.js?v=1"></script>
+    <script data-goatcounter="https://sebaweb.goatcounter.com/count" data-goatcounter-settings='{"no_onload": true}'
+            async src="//gc.zgo.at/count.js" onload="gcReady()"></script>
   </head>
   <body>
     <header id="header">
@@ -145,6 +149,7 @@
         </div>
       </section>
     </main>
-    <script type="module" src="population.js?v=4"></script>
+    <script type="module" src="population.js?v=5"></script>
+    <script>if (window.trackPage) trackPage({ noLang: true });</script>
   </body>
 </html>
