@@ -2,7 +2,8 @@
 // Both simulators use the SeBa build with the finer time output ("hirestime"): it gives the same
 // physics as the default build, but many more rows, so the graphs, the table and the movie are smoother.
 // (The single-star simulator runs it as a binary with a very wide orbit and a light companion.)
-import createSeBaHires from "./seba_hirestime.js";
+import createSeBaHires from "./seba_hirestime.js?v=2";
+const SEBA_VERSION = 2; // raise together with the ?v= above after a new build (build.sh)
 import * as C_S from "./constants-single.js?v=2";
 import * as C_B from "./constants-binary.js?v=3";
 
@@ -712,6 +713,7 @@ async function runSeba() {
     $id("start-button").disabled = true;
     track("simulation started");
     const Module = await createSeBa({
+        locateFile: (path, prefix) => `${prefix}${path}?v=${SEBA_VERSION}`, // the new .wasm, not a stored old one
         print: (text) => appendOutput(text),
         printErr: (text) => appendOutput(text),
     });

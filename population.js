@@ -5,8 +5,7 @@ const BATCH = 1000; // systems per batch (see pop-worker.js)
 const $ = (id) => document.getElementById(id);
 
 // a random seed to start with, so two people (or two runs) don't get the same population by accident
-$("s").value = 10000 + Math.floor(Math.random() * 2 ** 30);
-// (seeds below a few thousand make this build of SeBa crash at the start: a bug in SeBa, see the notes)
+$("s").value = 1 + Math.floor(Math.random() * 2 ** 30);
 $("batch-size").textContent = BATCH.toLocaleString("en");
 
 // the exponent fields only for the power-law distributions
@@ -126,7 +125,7 @@ function start(e) {
         window.trackEvent("population started", { noLang: true }); // anonymous count, see track.js
     }
 
-    worker = new Worker("pop-worker.js?v=2", { type: "module" });
+    worker = new Worker("pop-worker.js?v=3", { type: "module" });
     worker.onmessage = (ev) => {
         const m = ev.data;
         if (m.type === "progress") {

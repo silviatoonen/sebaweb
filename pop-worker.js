@@ -11,7 +11,8 @@
 //    ignore it, and native SeBa output has none (check with: grep -c $'\t$' file.data)
 //  - the gzip file carries a comment in its header (see it with e.g. python's gzip module or 7-Zip)
 
-import createSeBa from "./seba_default.js?v=1";
+import createSeBa from "./seba_default.js?v=2";
+const SEBA_VERSION = 2; // raise together with the ?v= above after a new build (build.sh)
 
 let stop = false;
 
@@ -117,6 +118,7 @@ self.onmessage = async (e) => {
             commands.push("SeBa " + batchArgs.join(" "));
             const errors = [];
             const Mod = await createSeBa({
+                locateFile: (path, prefix) => `${prefix}${path}?v=${SEBA_VERSION}`, // the new .wasm, not a stored old one
                 print: () => {},
                 printErr: (t) => {
                     if (/error|abort|exception/i.test(t) && errors.length < 5) {
