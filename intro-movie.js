@@ -29,40 +29,41 @@ const TWIST = 0.4;
 const CHAPTERS = [8, 9, 12, 9, 9];
 // the overview: zoom out from the supernova at the start, zoom in on the star like the Sun at the end
 const OVERVIEW = { zoomOut: 1.6, zoomIn: 1.8, scale: 3.2, sun: [0.21, 0.77], boom: [0.63, 0.3] };
+// [moment in the chapter, Dutch, English, Spanish]
 const CAPTIONS = [
     [
-        [0, "Een greep uit je universum", "A glimpse of your universe"],
-        [0.55, "We zoomen in op een ster als de zon…", "We zoom in on a star like the Sun…"],
+        [0, "Een greep uit je universum", "A glimpse of your universe", "Un vistazo a tu universo"],
+        [0.55, "We zoomen in op een ster als de zon…", "We zoom in on a star like the Sun…", "Nos acercamos a una estrella como el Sol…"],
     ],
     [
-        [0, "Een ster als de zon schijnt miljarden jaren rustig", "A star like the Sun shines quietly for billions of years"],
-        [0.22, "Dan zwelt ze op tot een rode reus", "Then it swells up into a red giant"],
-        [0.62, "Ze blaast haar buitenlagen weg: er blijft een witte dwerg over", "It blows away its outer layers, leaving a white dwarf"],
+        [0, "Een ster als de zon schijnt miljarden jaren rustig", "A star like the Sun shines quietly for billions of years", "Una estrella como el Sol brilla tranquila durante miles de millones de años"],
+        [0.22, "Dan zwelt ze op tot een rode reus", "Then it swells up into a red giant", "Después se hincha hasta ser una gigante roja"],
+        [0.62, "Ze blaast haar buitenlagen weg: er blijft een witte dwerg over", "It blows away its outer layers, leaving a white dwarf", "Expulsa sus capas exteriores y queda una enana blanca"],
     ],
     [
-        [0, "En wat gebeurt er met haar planeten?", "And what happens to its planets?"],
-        [0.18, "Ze zwelt op tot een rode reus…", "It swells up into a red giant…"],
-        [0.31, "Haar wind blaast massa weg: de buitenste planeet drijft naar buiten", "Its wind blows mass away: the outer planet drifts outward"],
-        [0.5, "…en ze slokt de binnenste planeet op", "…and it swallows the inner planet"],
-        [0.66, "Er blijft een witte dwerg over, met één planeet", "A white dwarf is left, with one planet"],
+        [0, "En wat gebeurt er met haar planeten?", "And what happens to its planets?", "¿Y qué pasa con sus planetas?"],
+        [0.18, "Ze zwelt op tot een rode reus…", "It swells up into a red giant…", "Se hincha hasta ser una gigante roja…"],
+        [0.31, "Haar wind blaast massa weg: de buitenste planeet drijft naar buiten", "Its wind blows mass away: the outer planet drifts outward", "Su viento se lleva masa: el planeta exterior se aleja"],
+        [0.5, "…en ze slokt de binnenste planeet op", "…and it swallows the inner planet", "…y se traga el planeta interior"],
+        [0.66, "Er blijft een witte dwerg over, met één planeet", "A white dwarf is left, with one planet", "Queda una enana blanca, con un planeta"],
     ],
     [
-        [0, "Twee sterren draaien om elkaar heen", "Two stars orbit each other"],
-        [0.28, "De zwaarste zwelt op…", "The heavier one swells up…"],
-        [0.5, "…en geeft gas door aan haar buur", "…and passes gas to its companion"],
+        [0, "Twee sterren draaien om elkaar heen", "Two stars orbit each other", "Dos estrellas giran una alrededor de la otra"],
+        [0.28, "De zwaarste zwelt op…", "The heavier one swells up…", "La más pesada se hincha…"],
+        [0.5, "…en geeft gas door aan haar buur", "…and passes gas to its companion", "…y le pasa gas a su compañera"],
     ],
     [
-        [0, "Een zware ster leeft snel", "A heavy star lives fast"],
-        [0.18, "Ze wordt een rode superreus…", "It becomes a red supergiant…"],
-        [0.45, "…en ontploft als supernova. Er blijft een neutronenster over", "…and explodes as a supernova, leaving a neutron star"],
+        [0, "Een zware ster leeft snel", "A heavy star lives fast", "Una estrella pesada vive deprisa"],
+        [0.18, "Ze wordt een rode superreus…", "It becomes a red supergiant…", "Se convierte en una supergigante roja…"],
+        [0.45, "…en ontploft als supernova. Er blijft een neutronenster over", "…and explodes as a supernova, leaving a neutron star", "…y explota como supernova; queda una estrella de neutrones"],
     ],
 ];
 
-// The language the page shows: the pressed NL | EN button (the page opens in Dutch), otherwise <html lang>
+// The language the page shows: the pressed NL | EN | ES button (the page opens in Dutch), otherwise <html lang>
 function introLang() {
     const pressed = document.querySelector('.lang button[aria-pressed="true"]');
     const l = pressed ? pressed.dataset.lang : document.documentElement.lang;
-    return l === "en" ? "en" : "nl";
+    return l === "en" || l === "es" ? l : "nl";
 }
 
 export class IntroMovie extends BinaryMovie {
@@ -71,6 +72,7 @@ export class IntroMovie extends BinaryMovie {
         const words = {
             nl: { sun: "Zon", "movie-aria": "Bewegend beeld van sterren, een ster met een planeet, een dubbelster en een supernova" },
             en: { sun: "Sun", "movie-aria": "Moving picture of stars, a star with a planet, a binary star and a supernova" },
+            es: { sun: "Sol", "movie-aria": "Imagen en movimiento de estrellas, una estrella con un planeta, una estrella binaria y una supernova" },
         };
         super({ ...opts, t: (key) => words[lang()][key] || key });
         this.mode = ["story", "mt"].includes(opts.mode) ? opts.mode : "scene";
@@ -281,7 +283,7 @@ export class IntroMovie extends BinaryMovie {
                 line = l;
             }
         }
-        const text = introLang() === "en" ? line[2] : line[1];
+        const text = line[{ nl: 1, en: 2, es: 3 }[introLang()]];
         const since = (u - line[0]) * len;
         this._caption(text, this.reduced ? 1 : smooth(since / 0.5));
 

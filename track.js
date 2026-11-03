@@ -8,7 +8,8 @@
 (function () {
     var queue = [];
     var lang = function () {
-        return (document.documentElement.lang || "nl").toLowerCase().indexOf("en") === 0 ? "EN" : "NL";
+        var l = (document.documentElement.lang || "nl").toLowerCase().slice(0, 2);
+        return l === "en" || l === "es" ? l.toUpperCase() : "NL";
     };
     // the page name without the folder it is in on the server, so that the counts stay the same after a move
     var page = function () {

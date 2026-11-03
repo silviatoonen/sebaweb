@@ -54,7 +54,7 @@ const PLOTLY_LIGHT_MODE = {
 };
 
 // Supported languages with a translation file
-const LANGUAGES = ["en", "nl"];
+const LANGUAGES = ["en", "nl", "es"];
 // the language when the visitor has not chosen one yet: English on the English address
 // (starworkshop.org), Dutch everywhere else
 const DEFAULT_LANG = /(^|\.)starworkshop\.org$/.test(window.location.hostname) ? "en" : "nl";
@@ -285,7 +285,7 @@ function updateMass2Hint() {
     hint.hidden = companion !== "planet";
     const v = parseFloat($id("mass2-input").value);
     if (companion === "planet" && !isNaN(v)) {
-        const lang = document.documentElement.lang === "en" ? "en" : "nl";
+        const lang = LANGUAGES.includes(document.documentElement.lang) ? document.documentElement.lang : "nl";
         const mj = (v / JUPITER_MASS).toLocaleString(lang, { maximumSignificantDigits: 2 });
         hint.textContent = `≈ ${mj} ${_t("jupiter-masses")}`;
     }
@@ -401,7 +401,7 @@ function updateSepHint() {
     const P = parseFloat($id("sep-input").value);
     const M = totalMass();
     if (orbitMode === "period" && P > 0 && M > 0) {
-        const lang = document.documentElement.lang === "en" ? "en" : "nl";
+        const lang = LANGUAGES.includes(document.documentElement.lang) ? document.documentElement.lang : "nl";
         const a = sepFromPeriod(P, M).toLocaleString(lang, { maximumSignificantDigits: 3 });
         hint.textContent = `≈ ${a} ${_t("unit-sep")} ${_t("orbit-hint")}`;
     }
@@ -436,7 +436,7 @@ function updateMinMax() {
 async function loadTranslations() {
     for (const lang of LANGUAGES) {
         try {
-            const response = await fetch(`${lang}.json?v=8`); // ?v: load the new texts after a change
+            const response = await fetch(`${lang}.json?v=9`); // ?v: load the new texts after a change
 
             if (!response.ok) {
                 throw new Error(`Could not fetch ${lang}.json`);
@@ -473,7 +473,7 @@ function updatePlotOptions() {
 // and mark the active language button
 function setLabels(lang) {
     document.querySelectorAll("[data-l]").forEach((element) => {
-        element.hidden = element.dataset.l !== lang;
+        element.hidden = !element.dataset.l.split(" ").includes(lang); // data-l can name more than one language
     });
     document.querySelectorAll(".lang button").forEach((button) => {
         button.setAttribute("aria-pressed", button.dataset.lang === lang ? "true" : "false");
@@ -609,7 +609,7 @@ function _t(key) {
 // The star movie: draws the result of a single-star run as an animation (see star-movie.js)
 async function initMovie() {
     try {
-        const { StarMovie, BinaryMovie } = await import("./star-movie.js?v=29");
+        const { StarMovie, BinaryMovie } = await import("./star-movie.js?v=30");
         // show the movie area first, so that the canvas can measure its size
         $id("star-movie").classList.replace("invisible", "visible");
         $id("gif-space").classList.add("invisible");
@@ -1186,7 +1186,27 @@ window.addEventListener("resize", () => {
     }
 });
 
+// Plotly is loaded after base.js (see simulator.html), so that the page does not wait for it.
+// plotlyReady() resolves as soon as Plotly is there.
+function plotlyReady() {
+    if (window.Plotly) {
+        return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+        const script = document.getElementById("plotly-js");
+        const check = () => (window.Plotly ? resolve() : null);
+        if (script) {
+            script.addEventListener("load", check);
+        }
+        const timer = setInterval(() => window.Plotly && (clearInterval(timer), resolve()), 200); // in case the event was missed
+    });
+}
+
 function plot() {
+    if (!window.Plotly) {
+        plotlyReady().then(plot); // draw as soon as Plotly has loaded
+        return;
+    }
     graphWasNarrow = ($id("plotly-graph")?.clientWidth || 1000) < 600;
     const g = buildGraph();
     currentAxes = { x: g.xaxis, y: g.yaxis, xtype: g.xtype, ytype: g.ytype };
@@ -1231,7 +1251,9 @@ function moveDot() {
     const x = at(currentAxes.x, currentAxes.xtype);
     const y = at(currentAxes.y, currentAxes.ytype);
     const ok = Number.isFinite(x) && Number.isFinite(y);
-    Plotly.restyle("plotly-graph", { x: [[ok ? x : null]], y: [[ok ? y : null]] }, [dotIndex]);
+    if (window.Plotly) {
+        Plotly.restyle("plotly-graph", { x: [[ok ? x : null]], y: [[ok ? y : null]] }, [dotIndex]);
+    }
 }
 
 function applyPreset(name) {
@@ -1254,6 +1276,7 @@ async function downloadGraph() {
         return;
     }
     track("graph downloaded");
+    await plotlyReady();
     const g = buildGraph({ light: true, forExport: true, height: 650 });
     const holder = document.createElement("div");
     holder.style.cssText = "position:fixed;left:-10000px;top:0;width:1100px;height:650px;";
@@ -1265,7 +1288,7 @@ async function downloadGraph() {
             width: 1100,
             height: 650,
             scale: 2,
-            filename: withRunTag(document.documentElement.lang === "nl" ? "sterrenstrijd-grafiek" : "star-workshop-graph"),
+            filename: withRunTag({ nl: "sterrenstrijd-grafiek", en: "star-workshop-graph", es: "taller-de-estrellas-grafica" }[document.documentElement.lang] || "star-workshop-graph"),
         });
     } catch (error) {
         console.warn("Could not download the graph:", error);
@@ -1478,7 +1501,8 @@ async function init() {
     /* Get a default language setting from the local storage */
     // a language in the address (?lang=en or ?lang=nl) wins over the one chosen before
     const asked = params.get("lang");
-    const lang = asked === "en" || asked === "nl" ? asked : localStorage.getItem("lang") || DEFAULT_LANG;
+    const saved = localStorage.getItem("lang");
+    const lang = LANGUAGES.includes(asked) ? asked : LANGUAGES.includes(saved) ? saved : DEFAULT_LANG;
     setLabels(lang); // show the right language in the menu and footer straight away
 
     addEventListeners();

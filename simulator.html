@@ -12,29 +12,52 @@
     <link rel="icon" href="favicon-star.ico" sizes="any" />
     <link rel="apple-touch-icon" href="apple-touch-icon-star.png" />
     <link rel="stylesheet" href="base.css?v=23" />
-    <script src="https://cdn.plot.ly/plotly-3.4.0.min.js" defer></script>
-    <script src="base.js?v=44" type="module"></script>
+    <!-- base.js first: the page is ready at once; Plotly (large) keeps loading in the background and the
+         graph waits for it (plotlyReady in base.js) -->
+    <script src="base.js?v=46" type="module"></script>
+    <script id="plotly-js" src="https://cdn.plot.ly/plotly-3.4.0.min.js" defer></script>
     <!-- anonymous visitor counts (GoatCounter, no cookies); see track.js -->
-    <script src="track.js?v=1"></script>
+    <script src="track.js?v=2"></script>
     <script data-goatcounter="https://sebaweb.goatcounter.com/count" data-goatcounter-settings='{"no_onload": true}'
             async src="//gc.zgo.at/count.js" onload="gcReady()"></script>
   </head>
   <body>
     <header id="header">
       <nav id="nav">
-        <a class="brand" href="index.html"><span class="brand-name"><span data-l="nl">Sterrenstrijd</span><span data-l="en" hidden>Star Workshop</span></span><span class="brand-sub"><span data-l="nl">Interactieve sterrenkunde-simulators</span><span data-l="en" hidden>Interactive astronomy simulators</span></span></a>
+        <a class="brand" href="index.html"><span class="brand-name"><span data-l="nl">Sterrenstrijd</span><span data-l="en" hidden>Star Workshop</span><span data-l="es" hidden>Taller de Estrellas</span></span><span class="brand-sub"><span data-l="nl">Interactieve sterrenkunde-simulators</span><span data-l="en" hidden>Interactive astronomy simulators</span><span data-l="es" hidden>Simuladores interactivos de astronomía</span></span></a>
         <div id="menu">
           <ul>
-            <li><a href="index.html#about"><span data-l="nl">Intro</span><span data-l="en" hidden>About</span></a></li>
-            <li><a href="index.html#overview"><span data-l="nl">Ontdek</span><span data-l="en" hidden>Explore</span></a></li>
-            <li><a href="index.html#tools"><span data-l="nl">Simulators</span><span data-l="en" hidden>Tools</span></a></li>
-            <li><a href="index.html#projects"><span data-l="nl">Projecten</span><span data-l="en" hidden>Projects</span></a></li>
+            <li><a href="index.html#about"><span data-l="nl">Intro</span><span data-l="en" hidden>About</span><span data-l="es" hidden>Introducción</span></a></li>
+            <li><a href="index.html#overview"><span data-l="nl">Ontdek</span><span data-l="en" hidden>Explore</span><span data-l="es" hidden>Explora</span></a></li>
+            <li><a href="index.html#tools"><span data-l="nl">Simulators</span><span data-l="en" hidden>Tools</span><span data-l="es" hidden>Simuladores</span></a></li>
+            <li><a href="index.html#projects"><span data-l="nl">Projecten</span><span data-l="en" hidden>Projects</span><span data-l="es" hidden>Proyectos</span></a></li>
           </ul>
         </div>
         <div class="lang" role="group" aria-label="Language">
           <button type="button" data-lang="nl" aria-pressed="true">NL</button>
           <button type="button" data-lang="en" aria-pressed="false">EN</button>
+          <button type="button" data-lang="es" aria-pressed="false">ES</button>
         </div>
+      <script>
+        // Order of the language buttons, fixed per "version" of the site: whoever arrives via the English
+        // address (forwarded with ?lang=en) sees EN first, via the Spanish address ?lang=es ES first,
+        // otherwise NL first. The order is remembered, so it stays the same on every page and visit,
+        // and it does not change when someone clicks another language.
+        (function () {
+          var orders = { nl: ["nl", "en", "es"], en: ["en", "es", "nl"], es: ["es", "en", "nl"] };
+          var asked = new URLSearchParams(location.search).get("lang"), order = null;
+          try {
+            if (orders[asked]) localStorage.setItem("langOrder", asked);
+            order = localStorage.getItem("langOrder");
+          } catch (e) {}
+          if (!orders[order]) order = /(^|\.)starworkshop\.org$/.test(location.hostname) ? "en" : "nl";
+          var box = document.currentScript.previousElementSibling;
+          orders[order].forEach(function (l) {
+            var b = box.querySelector('[data-lang="' + l + '"]');
+            if (b) box.appendChild(b);
+          });
+        })();
+      </script>
       </nav>
       <div id="banner">
         <svg class="banner-art" viewBox="0 0 800 240" preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false">
@@ -103,11 +126,18 @@
           </g>
           </g>
         </svg>
-        <h1 data-i8n="seba-main-title">SeBa online</h1>
+        <h1 id="banner-title" data-i8n="seba-main-title">Sterrenstrijd</h1>
       </div>
       <script>
         // banner picture: the single star for the single-star simulator, the binary and the planets for the binary one
         document.getElementById("banner").dataset.variant = new URLSearchParams(location.search).get("variant") || "single";
+        // the name in the banner straight away in the right language (base.js fills in the texts a moment later)
+        (function () {
+          var lang = new URLSearchParams(location.search).get("lang"), saved = null;
+          try { saved = localStorage.getItem("lang"); } catch (e) {}
+          if (["nl", "en", "es"].indexOf(lang) < 0) lang = ["nl", "en", "es"].indexOf(saved) >= 0 ? saved : /(^|\.)starworkshop\.org$/.test(location.hostname) ? "en" : "nl";
+          document.getElementById("banner-title").textContent = { nl: "Sterrenstrijd", en: "Star Workshop", es: "Taller de Estrellas" }[lang];
+        })();
       </script>
     </header>
     <main>
@@ -172,7 +202,7 @@
       <section id="graph" class="invisible">
         <h2 id="graph-heading" data-i8n="header-graph">Graph</h2>
         <div id="gif-space" role="img" aria-label="Space reserved for an animation">
-          <span data-l="nl">Hier komt een animatie (GIF)</span><span data-l="en" hidden>An animation (GIF) will go here</span>
+          <span data-l="nl">Hier komt een animatie (GIF)</span><span data-l="en" hidden>An animation (GIF) will go here</span><span data-l="es" hidden>Aquí irá una animación (GIF)</span>
         </div>
         <div id="star-movie" class="invisible">
           <div class="movie-controls">
@@ -260,8 +290,8 @@
     </main>
     <footer>
   <div class="wrap">
-    <div><b><span data-l="nl">Sterrenstrijd</span><span data-l="en" hidden>Star Workshop</span></b><br><span data-l="nl">Interactieve sterrenkunde-simulators</span><span data-l="en" hidden>Interactive astronomy simulators</span><br><span data-l="nl">Het leven van een ster, in jouw handen.</span><span data-l="en" hidden>A star's life, in the palm of your hand.</span></div>
-    <div><a href="index.html#about"><span data-l="nl">Intro</span><span data-l="en" hidden>About</span></a><a href="index.html#tools"><span data-l="nl">Simulators</span><span data-l="en" hidden>Tools</span></a><a href="index.html#projects"><span data-l="nl">Projecten</span><span data-l="en" hidden>Projects</span></a><a href="index.html#team"><span data-l="nl">Code en team</span><span data-l="en" hidden>Code &amp; team</span></a><a href="index.html#contact"><span data-l="nl">Contact</span><span data-l="en" hidden>Contact</span></a></div>
+    <div><b><span data-l="nl">Sterrenstrijd</span><span data-l="en" hidden>Star Workshop</span><span data-l="es" hidden>Taller de Estrellas</span></b><br><span data-l="nl">Interactieve sterrenkunde-simulators</span><span data-l="en" hidden>Interactive astronomy simulators</span><span data-l="es" hidden>Simuladores interactivos de astronomía</span><br><span data-l="nl">Het leven van een ster, in jouw handen.</span><span data-l="en" hidden>A star's life, in the palm of your hand.</span><span data-l="es" hidden>La vida de una estrella, en tus manos.</span></div>
+    <div><a href="index.html#about"><span data-l="nl">Intro</span><span data-l="en" hidden>About</span><span data-l="es" hidden>Introducción</span></a><a href="index.html#tools"><span data-l="nl">Simulators</span><span data-l="en" hidden>Tools</span><span data-l="es" hidden>Simuladores</span></a><a href="index.html#projects"><span data-l="nl">Projecten</span><span data-l="en" hidden>Projects</span><span data-l="es" hidden>Proyectos</span></a><a href="index.html#team"><span data-l="nl">Code en team</span><span data-l="en" hidden>Code &amp; team</span><span data-l="es" hidden>Código y equipo</span></a><a href="index.html#contact"><span data-l="nl">Contact</span><span data-l="en" hidden>Contact</span><span data-l="es" hidden>Contacto</span></a></div>
     <div>© 2026 Silvia Toonen</div>
   </div>
 </footer>

@@ -595,7 +595,7 @@ export class StarMovie {
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         const tag = typeof this.fileTag === "function" ? this.fileTag() : "";
-        const base = lang === "nl" ? "sterrenstrijd-film" : "star-workshop-movie";
+        const base = { nl: "sterrenstrijd-film", en: "star-workshop-movie", es: "taller-de-estrellas-pelicula" }[lang] || "star-workshop-movie";
         link.download = `${base}${tag ? "_" + tag : ""}.${type.includes("mp4") ? "mp4" : "webm"}`;
         document.body.appendChild(link);
         link.click();
