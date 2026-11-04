@@ -2,8 +2,8 @@
 // Both simulators use the SeBa build with the finer time output ("hirestime"): it gives the same
 // physics as the default build, but many more rows, so the graphs, the table and the movie are smoother.
 // (The single-star simulator runs it as a binary with a very wide orbit and a light companion.)
-import createSeBaHires from "./seba_hirestime.js?v=2";
-const SEBA_VERSION = 2; // raise together with the ?v= above after a new build (build.sh)
+import createSeBaHires from "./seba_hirestime.js?v=3";
+const SEBA_VERSION = 3; // raise together with the ?v= above after a new build (build.sh)
 import * as C_S from "./constants-single.js?v=2";
 import * as C_B from "./constants-binary.js?v=3";
 

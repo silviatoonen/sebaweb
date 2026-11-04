@@ -11,8 +11,8 @@
 //    ignore it, and native SeBa output has none (check with: grep -c $'\t$' file.data)
 //  - the gzip file carries a comment in its header (see it with e.g. python's gzip module or 7-Zip)
 
-import createSeBa from "./seba_default.js?v=2";
-const SEBA_VERSION = 2; // raise together with the ?v= above after a new build (build.sh)
+import createSeBa from "./seba_default.js?v=3";
+const SEBA_VERSION = 3; // raise together with the ?v= above after a new build (build.sh)
 
 let stop = false;
 

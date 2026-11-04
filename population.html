@@ -33,6 +33,7 @@
       .pop-status p { margin: .3rem 0; }
       .pop-warn { color: #c0392b; }
       .pop-note { font-size: .9rem; color: var(--muted); }
+      #pop-defaults { font: inherit; font-size: .85rem; padding: 2px 8px; margin-left: 4px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
       #pop-download { display: none; font-weight: 600; padding: 10px 20px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); text-decoration: none; }
       .pop-card label code { white-space: nowrap; }
     </style>
@@ -126,6 +127,42 @@
                 <div data-exp="u" data-show="1"><label for="v">Exponent <code>-v</code></label><input id="v" type="number" step="any" value="0"></div>
               </div>
             </div>
+
+            <div class="pop-card">
+              <h3>Binary interactions</h3>
+              <div class="pop-row one">
+                <div><label for="ce-method">Common envelope <code>--ce-method</code></label>
+                  <select id="ce-method" data-default="1"><option value="1" selected>α-γ (standard)</option><option value="2">γ-γ</option><option value="3">α-α</option></select></div>
+              </div>
+              <div class="pop-row one">
+                <div><label for="jloss-method">Angular momentum loss <code>--jloss-method</code></label>
+                  <select id="jloss-method" data-default="1"><option value="1" selected>With β (standard)</option><option value="2">Specific <i>J</i> of the orbit</option><option value="3">Specific <i>J</i> of the donor (Jeans mode)</option><option value="4">Specific <i>J</i> of the accretor (isotropic re-emission)</option></select></div>
+              </div>
+              <div class="pop-row">
+                <div><label for="alpha">α, efficiency <code>--alpha</code></label><input id="alpha" type="number" min="0.000001" step="any" value="4" data-default="4" required></div>
+                <div><label for="lambda">λ, binding energy <code>--lambda</code></label><input id="lambda" type="number" min="0.000001" step="any" value="0.5" data-default="0.5" required></div>
+              </div>
+              <div class="pop-row">
+                <div><label for="gamma">γ <code>--gamma</code></label><input id="gamma" type="number" min="0.000001" step="any" value="1.75" data-default="1.75" required></div>
+                <div><label for="beta">β, angular momentum loss <code>--beta</code></label><input id="beta" type="number" min="0" step="any" value="2.5" data-default="2.5" required></div>
+              </div>
+              <p class="pop-note">The standard values are SeBa's default model. Only values you change are added to the command. <button type="button" class="secondary" id="pop-defaults">Back to standard</button></p>
+            </div>
+
+            <div class="pop-card">
+              <h3>Supernovae and black holes</h3>
+              <div class="pop-row one">
+                <div><label for="SN_kick">Supernova kick <code>--SN_kick</code></label>
+                  <select id="SN_kick" data-default="0"><option value="0" selected>Standard (Verbunt et al. 2017)</option><option value="1">No kick</option><option value="2">Maxwellian</option><option value="3">Paczynski</option><option value="4">Hobbs et al. (2005)</option><option value="5">Arzoumanian et al. (2002)</option><option value="7">The same kick for every supernova</option></select></div>
+              </div>
+              <div class="pop-row one" data-kickdisp>
+                <div><label for="SN_kick_dispersion">Velocity dispersion in km/s <code>--SN_kick_dispersion</code></label><input id="SN_kick_dispersion" type="number" min="0" step="any" value="600" data-default="600" required></div>
+              </div>
+              <div class="pop-row one">
+                <div><label for="bh-mass-method">Black hole mass <code>--bh-mass-method</code></label>
+                  <select id="bh-mass-method" data-default="2"><option value="1">SeBa (Fryer &amp; Kalogera 2001)</option><option value="2" selected>Fryer et al. (2012) delayed (standard)</option><option value="3">Fryer et al. (2012) rapid</option><option value="4">Fryer et al. (2012) StarTrack</option></select></div>
+              </div>
+            </div>
           </div>
 
           <p class="pop-note">Equivalent SeBa command (the run is done in batches of <span id="batch-size"></span> systems; batch <i>k</i> uses seed <i>s</i> + <i>k</i> and first ID <i>N</i> + <i>k</i> × batch):</p>
@@ -149,7 +186,7 @@
         </div>
       </section>
     </main>
-    <script type="module" src="population.js?v=6"></script>
+    <script type="module" src="population.js?v=9"></script>
     <script>if (window.trackPage) trackPage({ noLang: true });</script>
   </body>
 </html>

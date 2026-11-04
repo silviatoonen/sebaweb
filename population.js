@@ -8,11 +8,19 @@ const $ = (id) => document.getElementById(id);
 $("s").value = 1 + Math.floor(Math.random() * 2 ** 30);
 $("batch-size").textContent = BATCH.toLocaleString("en");
 
+// the binary-interaction parameters (population.html, card "Binary interactions"); their SeBa
+// option is "--" + id. Each field has its standard (SeBa default) value in data-default.
+const MODEL = ["ce-method", "jloss-method", "alpha", "lambda", "gamma", "beta", "SN_kick", "SN_kick_dispersion", "bh-mass-method"];
+// changed from the standard value, and in use (the kick dispersion is hidden for kicks that don't use it)
+const changed = (id) => parseFloat($(id).value) !== parseFloat($(id).dataset.default) && !$(id).closest("[hidden]");
+
 // the exponent fields only for the power-law distributions
 function showExponents() {
     document.querySelectorAll("[data-exp]").forEach((box) => {
         box.hidden = $(box.dataset.exp).value !== box.dataset.show;
     });
+    // the kick dispersion only for the Maxwellian (2), Paczynski (3) and same-for-all (7) kicks
+    document.querySelector("[data-kickdisp]").hidden = !["2", "3", "7"].includes($("SN_kick").value);
 }
 
 // the SeBa options from the form (without -R, -n, -N, -s, which the worker adds per batch)
@@ -26,6 +34,10 @@ function options() {
     if (v("g") === "1") opt.push("-y", v("y"));
     opt.push("-e", v("e"), "-E", v("E"), "-u", v("u"));
     if (v("u") === "1") opt.push("-v", v("v"));
+    // binary interactions: SeBa options that are only a word (--alpha 2); added only when changed
+    for (const id of MODEL) {
+        if (changed(id)) opt.push("--" + id, v(id));
+    }
     return opt;
 }
 
@@ -125,7 +137,7 @@ function start(e) {
         window.trackEvent("population started", { noLang: true }); // anonymous count, see track.js
     }
 
-    worker = new Worker("pop-worker.js?v=3", { type: "module" });
+    worker = new Worker("pop-worker.js?v=4", { type: "module" });
     worker.onmessage = (ev) => {
         const m = ev.data;
         if (m.type === "progress") {
@@ -157,7 +169,8 @@ function start(e) {
 
 function finish(m) {
     const last = lastRun.first + m.done - 1;
-    const name = `SeBa_z${$("z").value}_N${lastRun.first}-${last}_s${lastRun.seed}.data${lastRun.gzip ? ".gz" : ""}`;
+    const model = MODEL.filter(changed).map((id) => `_${id.replace("-method", "")}${$(id).value.trim()}`).join("");
+    const name = `SeBa_z${$("z").value}${model}_N${lastRun.first}-${last}_s${lastRun.seed}.data${lastRun.gzip ? ".gz" : ""}`;
     lastRun.done = m.done;
     lastRun.seconds = m.seconds;
     lastRun.commands = m.commands;
@@ -217,6 +230,11 @@ $("pop-stop").addEventListener("click", () => {
     }
 });
 $("pop-info").addEventListener("click", downloadInfo);
+$("pop-defaults").addEventListener("click", () => {
+    for (const id of MODEL) $(id).value = $(id).dataset.default;
+    showExponents();
+    showCommand();
+});
 $("pop-form").addEventListener("input", () => {
     showExponents();
     showCommand();
