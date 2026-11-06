@@ -436,7 +436,7 @@ function updateMinMax() {
 async function loadTranslations() {
     for (const lang of LANGUAGES) {
         try {
-            const response = await fetch(`${lang}.json?v=9`); // ?v: load the new texts after a change
+            const response = await fetch(`${lang}.json?v=13`); // ?v: load the new texts after a change
 
             if (!response.ok) {
                 throw new Error(`Could not fetch ${lang}.json`);
@@ -609,7 +609,7 @@ function _t(key) {
 // The star movie: draws the result of a single-star run as an animation (see star-movie.js)
 async function initMovie() {
     try {
-        const { StarMovie, BinaryMovie } = await import("./star-movie.js?v=30");
+        const { StarMovie, BinaryMovie } = await import("./star-movie.js?v=34");
         // show the movie area first, so that the canvas can measure its size
         $id("star-movie").classList.replace("invisible", "visible");
         $id("gif-space").classList.add("invisible");
@@ -621,6 +621,8 @@ async function initMovie() {
             slider: $id("movie-slider"),
             speedSelect: $id("movie-speed"),
             downloadButton: $id("movie-download"),
+            snapshotButton: $id("movie-snapshot"),
+            summaryElement: $id("movie-summary"), // binary simulator: what happens, in a few words
             // on a phone: a taller movie, with the text above and below the stars
             portraitOnPhone: true,
             // the input of the latest run, added to the name of the movie file
@@ -1401,6 +1403,7 @@ function downloadData(excel = false) {
 function addEventListeners() {
     $id("start-button").addEventListener("click", runSeba);
     $id("movie-download").addEventListener("click", () => track("movie downloaded"));
+    $id("movie-snapshot").addEventListener("click", () => track("movie snapshot downloaded"));
     $id("download-data").addEventListener("click", () => downloadData(false));
     $id("download-data-excel").addEventListener("click", () => downloadData(true));
     $id("download-graph").addEventListener("click", downloadGraph);

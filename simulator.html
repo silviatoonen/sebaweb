@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="base.css?v=23" />
     <!-- base.js first: the page is ready at once; Plotly (large) keeps loading in the background and the
          graph waits for it (plotlyReady in base.js) -->
-    <script src="base.js?v=47" type="module"></script>
+    <script src="base.js?v=51" type="module"></script>
     <script id="plotly-js" src="https://cdn.plot.ly/plotly-3.4.0.min.js" defer></script>
     <!-- anonymous visitor counts (GoatCounter, no cookies); see track.js -->
     <script src="track.js?v=2"></script>
@@ -218,7 +218,9 @@
           <canvas id="star-canvas" role="img"></canvas>
           <div class="movie-actions">
             <button type="button" id="movie-download" disabled></button>
+            <button type="button" id="movie-snapshot" disabled></button>
           </div>
+          <p class="movie-caption" id="movie-summary" hidden></p>
           <p class="movie-caption" id="movie-caption" data-i8n="movie-caption"></p>
           <p class="movie-caption invisible" id="movie-credit" data-i8n="movie-credit"></p>
           <p class="movie-caption invisible" id="movie-credit-helix" data-i8n="movie-credit-helix"></p>

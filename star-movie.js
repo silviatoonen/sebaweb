@@ -367,6 +367,8 @@ export class StarMovie {
         this.slider = opts.slider || null;
         this.speedSelect = opts.speedSelect || null;
         this.downloadBtn = opts.downloadButton || null;
+        this.snapshotBtn = opts.snapshotButton || null; // saves the moment on screen as an image
+        this.summaryEl = opts.summaryElement || null; // binary movie: what happens, in a few words
         this.fileTag = opts.fileTag || null; // optional: () => text added to the file name
         this.onState = opts.onState || null; // told about the state of the star at every frame
         // on a narrow screen (a phone) the movie becomes taller: the text goes in a band at the top and at
@@ -424,6 +426,9 @@ export class StarMovie {
         if (this.downloadBtn) {
             this.downloadBtn.disabled = !this.timeline;
         }
+        if (this.snapshotBtn) {
+            this.snapshotBtn.disabled = !this.timeline;
+        }
         this.p = 0;
         this.userPaused = false;
         this._syncSlider();
@@ -464,6 +469,10 @@ export class StarMovie {
         if (this.downloadBtn && !this.recording) {
             this.downloadBtn.textContent = this.t("movie-download");
         }
+        if (this.snapshotBtn) {
+            this.snapshotBtn.textContent = this.t("movie-snapshot");
+        }
+        this._showSummary();
         this.canvas.setAttribute("aria-label", this.t("movie-aria"));
         this.render();
     }
@@ -582,6 +591,9 @@ export class StarMovie {
         if (this.downloadBtn) {
             this.downloadBtn.disabled = true;
         }
+        if (this.snapshotBtn) {
+            this.snapshotBtn.disabled = true;
+        }
         this._recStop = () => recorder.stop();
         this._startLoop();
         this._renderTo(this.recCtx, 1280, 720, 1, true);
@@ -614,17 +626,73 @@ export class StarMovie {
         if (this.downloadBtn) {
             this.downloadBtn.disabled = false;
         }
+        if (this.snapshotBtn) {
+            this.snapshotBtn.disabled = false;
+        }
         this._syncSlider();
         this.refreshLabels();
     }
 
-    // One step of the recording: the movie runs at normal speed, the last frame stays for 1.5 s
+    // ----- snapshot: the moment that is on screen now, saved as an image. It looks like a frame of the
+    // downloaded movie (16:9, with the credits), at 1920 x 1080 pixels.
+    snapshot() {
+        if (!this.timeline || this.recording) {
+            return;
+        }
+        const W = 1280;
+        const H = 720;
+        const scale = 1.5;
+        const canvas = document.createElement("canvas");
+        canvas.width = W * scale;
+        canvas.height = H * scale;
+        this._renderTo(canvas.getContext("2d"), W, H, scale, true);
+        const lang = document.documentElement.lang || "en";
+        const tag = typeof this.fileTag === "function" ? this.fileTag() : "";
+        const base = { nl: "sterrenstrijd-afbeelding", en: "star-workshop-image", es: "taller-de-estrellas-imagen" }[lang] || "star-workshop-image";
+        // the time of the moment in the name of the file (in million years), or "overview"
+        const ov = typeof this._overviewAlpha === "function" && this._overviewAlpha() > 0.5;
+        const tNow = this._timeNow();
+        const when = ov
+            ? `_${this.t("overview-title").toLowerCase()}`
+            : Number.isFinite(tNow)
+              ? `_t${Number(tNow.toPrecision(4))}Myr`
+              : "";
+        canvas.toBlob((blob) => {
+            if (!blob) {
+                return;
+            }
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `${base}${tag ? "_" + tag : ""}${when}.png`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+        }, "image/png");
+    }
+
+    // the time (in million years) of the moment on screen
+    _timeNow() {
+        return this.timeline ? stateAt(this.timeline, this.p).t : NaN;
+    }
+
+    // the summary below the movie (only in the binary movie, see there)
+    _showSummary() {}
+
+    // How long a downloaded movie goes on after the last moment (the binary movie adds its overview)
+    _endHold() {
+        return 1.5;
+    }
+
+    // One step of the recording: the movie runs at normal speed, then stays at its end for _endHold() s
     _recTick(dt) {
         if (this.p < 1) {
             this.p = Math.min(1, this.p + dt / this.duration);
+            this.endSec = null;
         } else {
             this.recHold += dt;
-            if (this.recHold >= 1.5 && this._recStop) {
+            this.endSec = this.recHold;
+            if (this.recHold >= this._endHold() && this._recStop) {
                 const stop = this._recStop;
                 this._recStop = null;
                 stop();
@@ -632,7 +700,8 @@ export class StarMovie {
         }
         this._syncSlider();
         if (this.downloadBtn) {
-            const label = `${this.t("movie-recording")} ${Math.ceil((1 - this.p) * this.duration)} s`;
+            const left = (1 - this.p) * this.duration + Math.max(0, this._endHold() - (this.recHold || 0));
+            const label = `${this.t("movie-recording")} ${Math.ceil(left)} s`;
             if (this.downloadBtn.textContent !== label) {
                 this.downloadBtn.textContent = label;
             }
@@ -683,6 +752,9 @@ export class StarMovie {
         }
         if (this.downloadBtn) {
             this.downloadBtn.addEventListener("click", () => this.record());
+        }
+        if (this.snapshotBtn) {
+            this.snapshotBtn.addEventListener("click", () => this.snapshot());
         }
         if (this.slider) {
             // dragging the slider: the movie follows the slider, and when the slider is let go the movie
@@ -765,7 +837,14 @@ export class StarMovie {
             if (!this.reduced) {
                 this.sec += dt;
             }
-            if (!this.reduced || this.playing) {
+            // seconds since the movie reached its end (null while it is not at the end, or while the
+            // slider is held there): the binary movie then shows its overview
+            const atEnd = !this.recording && this.timeline && this.p >= 1 && !this.scrubbing;
+            if (!this.recording) {
+                this.endSec = atEnd ? (this.endSec ?? 0) + dt : null;
+            }
+            const fading = this.endSec !== null && this.endSec !== undefined && this.endSec < OV_DELAY + OV_FADE + 0.2;
+            if (!this.reduced || this.playing || fading) {
                 this.render();
             }
             this.rafId = requestAnimationFrame(tick);
@@ -851,24 +930,16 @@ export class StarMovie {
     }
 
     // Only in recordings, so that the video still says where it comes from
+    // The name of the site in a downloaded movie or image, at the bottom in the middle (where it is free
+    // of the text about the stars). The credits of the photos are in the text below the movie.
     _drawWatermark() {
         const { ctx, W, H } = this;
         const fs = clamp(W / 70, 10, 14);
         ctx.save();
-        ctx.textAlign = "right";
+        ctx.textAlign = "center";
         ctx.font = `${fs}px "Instrument Sans", system-ui, sans-serif`;
         ctx.fillStyle = "rgba(232,236,245,0.6)";
-        const x = W - W * 0.02;
-        let y = H - W * 0.015;
-        if (this.crab) {
-            ctx.fillText(this.t("movie-credit-short"), x, y);
-            y -= fs * 1.4;
-        }
-        if (this instanceof BinaryMovie && this.helix && this.timeline && this.timeline.events && this.timeline.events.some((q) => q.kind === "nebula")) {
-            ctx.fillText(this.t("movie-credit-helix-short"), x, y);
-            y -= fs * 1.4;
-        }
-        ctx.fillText(this.t("seba-main-title"), x, y);
+        ctx.fillText(this.t("seba-main-title"), W / 2, H - W * 0.015);
         ctx.restore();
     }
 
@@ -1799,6 +1870,175 @@ function formatPeriod(days, lang, t) {
     return `${num(days / 365.25)} ${t("movie-unit-yr")}`;
 }
 
+// ----- the overview at the end of the binary movie
+const OV_MAX_ROWS = 7;
+
+// The Roche lobes of a binary: the outline of the space around each star in which its gas is bound to
+// it (the surface through the inner Lagrangian point L1). mu = m2 / (m1 + m2). In units of the
+// separation, with the centre of mass at 0, star 1 at x = -mu and star 2 at x = 1 - mu.
+export function rocheOutlines(mu, n = 96) {
+    const phi = (x, y) => -(1 - mu) / Math.hypot(x + mu, y) - mu / Math.hypot(x - 1 + mu, y) - 0.5 * (x * x + y * y);
+    const dphi = (x) => ((1 - mu) * (x + mu)) / Math.abs(x + mu) ** 3 + (mu * (x - 1 + mu)) / Math.abs(x - 1 + mu) ** 3 - x;
+    let lo = -mu + 1e-6;
+    let hi = 1 - mu - 1e-6;
+    for (let k = 0; k < 60; k++) {
+        const mid = (lo + hi) / 2;
+        if (dphi(mid) > 0) {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    const xL1 = (lo + hi) / 2;
+    const pL1 = phi(xL1, 0);
+    const lobe = (c) => {
+        const pts = [];
+        for (let j = 0; j < n; j++) {
+            const th = (j / n) * TAU;
+            const ux = Math.cos(th);
+            const uy = Math.sin(th);
+            // a lobe does not reach past the plane through L1
+            const rMax = ux * (xL1 - c) > 0 ? (xL1 - c) / ux : 1.5;
+            let a = 1e-4;
+            let b = 1e-4;
+            while (b < rMax && phi(c + b * ux, b * uy) < pL1) {
+                a = b;
+                b = Math.min(rMax, b + 0.01);
+                if (b === rMax) {
+                    break;
+                }
+            }
+            if (phi(c + b * ux, b * uy) < pL1) {
+                a = b;
+            } else {
+                for (let k = 0; k < 40; k++) {
+                    const m = (a + b) / 2;
+                    if (phi(c + m * ux, m * uy) < pL1) {
+                        a = m;
+                    } else {
+                        b = m;
+                    }
+                }
+            }
+            pts.push([c + a * ux, a * uy]);
+        }
+        return pts;
+    };
+    const l1 = lobe(-mu);
+    const l2 = lobe(1 - mu);
+    const xs = [...l1, ...l2].map((pt) => pt[0]);
+    const x0 = Math.min(...xs);
+    const x1 = Math.max(...xs);
+    const h = Math.max(...[...l1, ...l2].map((pt) => Math.abs(pt[1])));
+    return { mu, xL1, l1, l2, x0, x1, w: x1 - x0, h };
+}
+
+// The moments of the overview: the start, the start of mass transfer or a common envelope, the end of
+// it, a new remnant (a supernova), a merger or disruption, and the end
+export function overviewRows(tl) {
+    const pts = tl.pts;
+    const rank = { start: 9, end: 8, after: 1, remnant: 2, sn: 4, mt: 5, ce: 6, merger: 7, disrupt: 7 };
+    const rows = [];
+    const add = (q, kind) => {
+        const last = rows[rows.length - 1];
+        if (last && last.q.i === q.i) {
+            if (rank[kind] > rank[last.kind] && last.kind !== "start") {
+                last.kind = kind;
+            }
+            return;
+        }
+        rows.push({ q, kind });
+    };
+    add(pts[0], "start");
+    let phase = null; // the interaction going on: null, "mt" (stable) or "ce" (unstable)
+    // The end of a phase of mass transfer is only written down once it is clear that it really ended:
+    // in SeBa's finer output the binary often stops transferring mass for a moment and then goes on.
+    // When the transfer starts again before either star changes type, it is the same phase.
+    let ended = null; // { q, kind, ty1, ty2 }: where the phase stopped
+    const flush = () => {
+        if (ended) {
+            add(ended.q, "after");
+            ended = null;
+        }
+    };
+    for (let k = 1; k < pts.length; k++) {
+        const a = pts[k - 1];
+        const b = pts[k];
+        const becomes = (ty, test) => (ty === 1 ? !test(a.ty1) && test(b.ty1) : b.has2 && !test(a.ty2) && test(b.ty2));
+        const isNSBH = (ty) => ty === 18 || ty === 19;
+        // a supernova: a star becomes a neutron star or black hole, or a star (a white dwarf) explodes
+        // completely (SeBa type 20, e.g. a type Ia supernova)
+        const exploded = (a.ty1 !== 20 && b.ty1 === 20) || (a.ty2 !== 20 && b.ty2 === 20);
+        const sn = becomes(1, isNSBH) || becomes(2, isNSBH) || exploded;
+        const remnant = becomes(1, isCompact) || becomes(2, isCompact);
+        if (b.bt === 7 && a.bt !== 7) {
+            flush();
+            add(b, "merger");
+            phase = null;
+            continue;
+        }
+        if (b.bt === DISRUPTED && a.bt !== DISRUPTED) {
+            flush();
+            add(b, sn ? "sn" : "disrupt"); // a supernova (with its kick) that breaks up the binary is a supernova
+            phase = null;
+            continue;
+        }
+        if (isMT(b.bt) && b.has2) {
+            const kind = b.unst ? "ce" : "mt";
+            if (!phase && ended && ended.ty1 === b.ty1 && ended.ty2 === b.ty2) {
+                phase = ended.kind; // the same phase goes on
+                ended = null;
+            }
+            if (!phase) {
+                flush();
+                add(b, kind); // a new phase
+            } else if (kind === "ce" && phase === "mt") {
+                add(b, "ce"); // stable transfer that turns unstable (once per phase)
+            }
+            phase = phase === "ce" ? "ce" : kind;
+        } else if (phase) {
+            ended = { q: b, kind: phase, ty1: b.ty1, ty2: b.ty2 };
+            phase = null;
+        }
+        if (ended && (b.ty1 !== ended.ty1 || b.ty2 !== ended.ty2)) {
+            flush(); // a star changed: the phase is really over
+        }
+        if (sn) {
+            flush();
+            add(b, "sn");
+        } else if (remnant) {
+            flush();
+            add(b, "remnant");
+        }
+    }
+    flush();
+    const last = pts[pts.length - 1];
+    if (rows[rows.length - 1].q.i !== last.i) {
+        rows.push({ q: last, kind: "end" });
+    }
+    // not too many rows: drop the least interesting moments in between
+    while (rows.length > OV_MAX_ROWS) {
+        let worst = 1;
+        for (let j = 2; j < rows.length - 1; j++) {
+            if (rank[rows[j].kind] < rank[rows[worst].kind]) {
+                worst = j;
+            }
+        }
+        rows.splice(worst, 1);
+    }
+    for (const row of rows) {
+        const q = row.q;
+        if (q.has2 && q.bt !== DISRUPTED && q.bt !== 7 && q.m1 > 0 && q.m2 > 0) {
+            row.lobes = rocheOutlines(q.m2 / (q.m1 + q.m2));
+        }
+    }
+    return rows;
+}
+
+const OV_DELAY = 1.2; // seconds after the end of the movie before the overview fades in
+const OV_FADE = 0.7;
+const OV_SHOW = 5; // seconds the overview stays in a downloaded movie
+
 const TILT = 0.5; // the orbit is seen at an angle
 const BIN_TWIST = 0.4; // direction of the long axis of the orbit
 
@@ -1808,6 +2048,9 @@ export class BinaryMovie extends StarMovie {
         this.timeline = buildBinaryTimeline(rows);
         if (this.downloadBtn) {
             this.downloadBtn.disabled = !this.timeline;
+        }
+        if (this.snapshotBtn) {
+            this.snapshotBtn.disabled = !this.timeline;
         }
         this.p = 0;
         this.userPaused = false;
@@ -1833,6 +2076,18 @@ export class BinaryMovie extends StarMovie {
 
         const lang = document.documentElement.lang || "en";
         const tl = this.timeline;
+        const ova = tl ? this._overviewAlpha() : 0;
+        if (ova >= 1) {
+            // only the overview (the movie behind it is not drawn any more)
+            if (this.onState && !this._forRecording) {
+                this.onState(stateAtB(tl, this.p));
+            }
+            this._drawOverview(lang);
+            if (this._forRecording) {
+                this._drawWatermark();
+            }
+            return;
+        }
         if (!tl) {
             ctx.fillStyle = "rgba(232,236,245,0.75)";
             ctx.font = `${Math.max(13, W / 50)}px "Instrument Sans", system-ui, sans-serif`;
@@ -1880,8 +2135,455 @@ export class BinaryMovie extends StarMovie {
         } else {
             this._drawHUD(s, lang);
         }
+        if (ova > 0) {
+            this._blendOverview(lang, ova);
+        }
         if (this._forRecording) {
             this._drawWatermark();
+        }
+    }
+
+    // ----- the overview at the end of the movie (like the evolution diagrams in papers): one row per
+    // moment at which something happens, with the time, the two masses and the separation
+
+    // the rows, worked out once per run (with the outlines of the Roche lobes)
+    _overviewRows() {
+        const tl = this.timeline;
+        if (!tl) {
+            return [];
+        }
+        if (!tl._overview) {
+            tl._overview = overviewRows(tl);
+        }
+        return tl._overview;
+    }
+
+    _endHold() {
+        return this._overviewRows().length >= 2 ? OV_DELAY + OV_FADE + OV_SHOW : 1.5;
+    }
+
+    _timeNow() {
+        return this.timeline ? stateAtB(this.timeline, this.p).t : NaN;
+    }
+
+    // The words at the top of the movie. A star that explodes: "star explodes" while the supernova is on
+    // screen; after that the binary type again (e.g. "disrupted" when the kick breaks up the binary). A
+    // white dwarf that explodes completely (SeBa type 20) leaves nothing: SeBa then calls the binary
+    // "disrupted", but here it stays "star explodes".
+    _statusWord(s) {
+        const t = this.t;
+        if (s.ty1 === 20 || s.ty2 === 20) {
+            return t("star-explodes");
+        }
+        // (shorter near the end, so that the last picture shows what the binary is afterwards)
+        const sn = this.timeline.events.some(
+            (ev) => ev.kind === "supernova" && this.p >= ev.p && this.p < ev.p + Math.min(0.12, 0.6 * (1 - ev.p)),
+        );
+        if (sn) {
+            return t("star-explodes");
+        }
+        return s.unst ? t("transfertype-4") : s.stab ? t("transfertype-1") : t(`bintype-${s.bt}`);
+    }
+
+    // What happens in this binary: the words at the top of the movie, one after the other
+    // ("no interaction → stable mass transfer → ..."). A short pause in a phase of mass transfer (in
+    // SeBa's finer output the transfer sometimes stops for a moment) is left out.
+    summaryWords() {
+        const tl = this.timeline;
+        if (!tl) {
+            return [];
+        }
+        const segs = [];
+        const push = (word, q) => {
+            const last = segs[segs.length - 1];
+            if (last && last.word === word) {
+                last.end = q;
+            } else {
+                segs.push({ word, start: q, end: q });
+            }
+        };
+        const explodes = this.t("star-explodes");
+        const isNSBH = (ty) => ty === 18 || ty === 19;
+        let prev = null;
+        for (const q of tl.pts) {
+            // a massive star explodes (it becomes a neutron star or black hole): "star explodes", followed
+            // by what the binary is after that (still bound, or disrupted by the kick)
+            if (prev && ((!isCompact(prev.ty1) && isNSBH(q.ty1)) || (q.has2 && !isCompact(prev.ty2) && isNSBH(q.ty2)))) {
+                push(explodes, q);
+            }
+            prev = q;
+            const unst = isMT(q.bt) && (!!q.ce || q.tt === 4 || q.tt === 5 || isCEType(q.bt));
+            const stab = isMT(q.bt) && !q.ce && !isCEType(q.bt) && (q.tt === 1 || q.tt === 2 || q.tt === 3);
+            // a white dwarf that explodes completely: nothing is left of it, so not "disrupted"
+            const word =
+                q.ty1 === 20 || q.ty2 === 20
+                    ? explodes
+                    : unst
+                      ? this.t("transfertype-4")
+                      : stab
+                        ? this.t("transfertype-1")
+                        : this.t(`bintype-${q.bt}`);
+            push(word, q);
+        }
+        for (let j = 1; j + 1 < segs.length; ) {
+            const [a, b, c] = [segs[j - 1], segs[j], segs[j + 1]];
+            const pause = !isMT(b.start.bt) && b.start.bt !== 7 && b.start.bt !== DISRUPTED && b.word !== explodes;
+            // the same phase: the stars did not change, or the pause was very short (< 2% of the age)
+            const same = (a.end.ty1 === c.start.ty1 && a.end.ty2 === c.start.ty2) || c.start.t - a.end.t < 0.02 * c.start.t;
+            if (a.word === c.word && pause && same) {
+                a.end = c.end;
+                segs.splice(j, 2);
+            } else {
+                j++;
+            }
+        }
+        return segs.map((sg) => sg.word);
+    }
+
+    _showSummary() {
+        const el = this.summaryEl;
+        if (!el) {
+            return;
+        }
+        const words = this.summaryWords();
+        const key = words.join("|");
+        if (el.dataset.shown === key) {
+            return; // nothing new (this is called often)
+        }
+        el.dataset.shown = key;
+        el.textContent = "";
+        if (!words.length) {
+            el.hidden = true;
+            return;
+        }
+        const b = document.createElement("b");
+        b.textContent = this.t("movie-summary");
+        el.append(b, " " + words.join(" → "));
+        el.hidden = false;
+    }
+
+    // 0 (not shown) to 1 (fully shown): it fades in a moment after the movie has reached its end
+    _overviewAlpha() {
+        if (this.endSec === null || this.endSec === undefined || this._overviewRows().length < 2) {
+            return 0;
+        }
+        const x = clamp((this.endSec - OV_DELAY) / OV_FADE, 0, 1);
+        return x * x * (3 - 2 * x);
+    }
+
+    // the overview, see-through over the last moment of the movie (while it fades in)
+    _blendOverview(lang, alpha) {
+        const { W, H, dpr } = this;
+        const w = Math.max(1, Math.round(W * dpr));
+        const h = Math.max(1, Math.round(H * dpr));
+        if (!this._ovCanvas) {
+            this._ovCanvas = document.createElement("canvas");
+        }
+        const oc = this._ovCanvas;
+        if (oc.width !== w || oc.height !== h) {
+            oc.width = w;
+            oc.height = h;
+        }
+        const main = this.ctx;
+        const octx = oc.getContext("2d");
+        octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        octx.globalCompositeOperation = "source-over";
+        octx.globalAlpha = 1;
+        octx.fillStyle = "#000";
+        octx.fillRect(0, 0, W, H);
+        this.ctx = octx;
+        try {
+            this._drawBackground();
+            this._drawOverview(lang);
+        } finally {
+            this.ctx = main;
+        }
+        main.save();
+        main.setTransform(1, 0, 0, 1, 0, 0);
+        main.globalAlpha = alpha;
+        main.drawImage(oc, 0, 0);
+        main.restore();
+    }
+
+    _drawOverview(lang) {
+        const { ctx, W, H } = this;
+        const t = this.t;
+        const rows = this._overviewRows();
+        const n = rows.length;
+        const narrow = W < 600;
+        const font = (size, weight = 400) => `${weight} ${size}px "Instrument Sans", system-ui, sans-serif`;
+        const fs = clamp(W / 62, 11, 16); // the numbers
+        const fsSmall = fs * 0.8; // the types of the stars, the events
+        const text = "rgba(232,236,245,0.92)";
+        const muted = "rgba(232,236,245,0.55)";
+
+        // the columns (x positions, as fractions of the width) and the room for the rows
+        const col = narrow
+            ? { t: 0.03, m1: 0.2, p0: 0.3, p1: 0.72, m2: 0.75, a: 0.88 }
+            : { t: 0.04, m1: 0.14, p0: 0.32, p1: 0.68, m2: 0.7, a: 0.88 };
+        const x = (f) => f * W;
+        const top = H * (narrow ? 0.12 : 0.155);
+        const bottom = H * (this._forRecording ? 0.12 : 0.035); // in a downloaded movie: room for the credits
+        const rh = Math.min((H - top - bottom) / n, H * 0.24);
+        const y0 = top + (H - top - bottom - rh * n) / 2; // the rows in the middle of the room that is left
+
+        // title and the names of the columns (a unit in brackets goes on a line of its own)
+        ctx.save();
+        ctx.textBaseline = "alphabetic";
+        ctx.fillStyle = text;
+        ctx.font = font(fs * 1.35, 600);
+        ctx.textAlign = "left";
+        ctx.fillText(t("overview-title"), x(col.t), H * (narrow ? 0.045 : 0.065));
+        // a text that is too wide for its column is squeezed a little (maxWidth of fillText)
+        const head = (key, xx, maxW) => {
+            const [name, unit] = t(key).split(/\s*(?=\()/);
+            ctx.textAlign = "left";
+            ctx.font = font(fs * 0.85, 600);
+            ctx.fillStyle = text;
+            ctx.fillText(name, xx, top - fs * (unit ? 1.7 : 0.7), maxW);
+            if (unit) {
+                ctx.font = font(fs * 0.8);
+                ctx.fillStyle = muted;
+                ctx.fillText(unit, xx, top - fs * 0.6, maxW);
+            }
+        };
+        head("overview-time", x(col.t), x(col.m1) - x(col.t) - 6);
+        head("overview-star1", x(col.m1), x(col.p0) - x(col.m1) - 6);
+        head("overview-star2", x(col.m2), x(col.a) - x(col.m2) - 6);
+        head("overview-sep", x(col.a), W - x(col.a) - 4);
+        ctx.strokeStyle = "rgba(232,236,245,0.35)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x(col.t), top - fs * 0.15);
+        ctx.lineTo(W - x(col.t), top - fs * 0.15);
+        ctx.stroke();
+        ctx.restore();
+
+        // the rows
+        const num = (v, digits = 3) => {
+            if (!Number.isFinite(v)) {
+                return "–";
+            }
+            const d = v >= 100 ? 0 : v >= 10 ? 1 : v >= 1 ? 2 : null;
+            return d === null
+                ? v.toLocaleString(lang, { maximumSignificantDigits: digits })
+                : v.toLocaleString(lang, { minimumFractionDigits: d, maximumFractionDigits: d });
+        };
+        rows.forEach((row, i) => {
+            const q = row.q;
+            const yc = y0 + (i + 0.5) * rh;
+            if (i > 0) {
+                ctx.save();
+                ctx.strokeStyle = "rgba(232,236,245,0.08)";
+                ctx.beginPath();
+                ctx.moveTo(x(col.t), y0 + i * rh);
+                ctx.lineTo(W - x(col.t), y0 + i * rh);
+                ctx.stroke();
+                ctx.restore();
+            }
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(x(col.m1) + (x(col.p0) - x(col.m1)) * 0.6, y0 + i * rh + 1, x(col.m2) - x(col.m1) - (x(col.p0) - x(col.m1)) * 0.6 - 4, rh - 2);
+            ctx.clip();
+            this._drawOverviewPicture(row, x(col.p0), x(col.p1), yc, rh);
+            ctx.restore();
+
+            ctx.save();
+            ctx.textBaseline = "middle";
+            ctx.textAlign = "left";
+            const twoLines = !narrow && rh > fs * 2.6;
+            const cell = (main, sub, xx) => {
+                ctx.font = font(fs);
+                ctx.fillStyle = text;
+                ctx.fillText(main, xx, twoLines && sub ? yc - fs * 0.5 : yc);
+                if (twoLines && sub) {
+                    ctx.font = font(fsSmall);
+                    ctx.fillStyle = muted;
+                    this._fitText(sub, xx, yc + fs * 0.65, x(col.p0) - x(col.m1) - 8);
+                }
+            };
+            cell(num(q.t), null, x(col.t));
+            if (q.ty1 === 20) {
+                cell("–", null, x(col.m1));
+            } else {
+                cell(num(q.m1), t(`type-${q.ty1}`), x(col.m1));
+            }
+            if (q.has2) {
+                const sub = t(`type-${q.ty2}`);
+                ctx.font = font(fs);
+                ctx.fillStyle = text;
+                ctx.fillText(num(q.m2), x(col.m2), twoLines ? yc - fs * 0.5 : yc);
+                if (twoLines) {
+                    ctx.font = font(fsSmall);
+                    ctx.fillStyle = muted;
+                    this._fitText(sub, x(col.m2), yc + fs * 0.65, x(col.a) - x(col.m2) - 8);
+                }
+            } else {
+                cell("–", null, x(col.m2));
+            }
+            cell(q.has2 && q.bt !== DISRUPTED ? num(q.sep) : "–", null, x(col.a));
+            // what happens at this moment, at the top of the picture
+            const what = {
+                mt: t("transfertype-1"),
+                ce: t("bintype-5"),
+                merger: t("bintype-7"),
+                disrupt: t("bintype-8"),
+                sn: q.bt === DISRUPTED && q.ty1 !== 20 && q.ty2 !== 20 ? `${t("star-explodes")} → ${t("bintype-8")}` : t("star-explodes"),
+            }[row.kind];
+            if (what) {
+                // at the top of the picture, on a dark band so that it stays readable
+                ctx.font = font(fsSmall, 600);
+                ctx.textAlign = "left";
+                ctx.textBaseline = "top";
+                const tw = ctx.measureText(what).width;
+                const lx = (x(col.p0) + x(col.p1)) / 2 - tw / 2;
+                const ly = yc - rh / 2 + 4;
+                ctx.fillStyle = "rgba(0,0,0,0.55)";
+                ctx.fillRect(lx - 3, ly - 2, tw + 6, fsSmall + 5);
+                ctx.fillStyle = "rgba(255,214,150,0.95)";
+                ctx.fillText(what, lx, ly);
+            }
+            ctx.restore();
+        });
+    }
+
+    // a text that is cut off with … when it is wider than maxW
+    _fitText(str, xx, yy, maxW) {
+        const { ctx } = this;
+        let s = String(str);
+        if (ctx.measureText(s).width > maxW) {
+            while (s.length > 1 && ctx.measureText(s + "…").width > maxW) {
+                s = s.slice(0, -1);
+            }
+            s = s.trimEnd() + "…";
+        }
+        ctx.fillText(s, xx, yy);
+    }
+
+    // The binary of one row, seen from above: the Roche lobes (dashed), the two stars, and the gas that
+    // flows from one star to the other, or the envelope around both
+    _drawOverviewPicture(row, xa, xb, yc, rh) {
+        const { ctx } = this;
+        const all = this._overviewRows();
+        const q = row.q;
+        const cx = (xa + xb) / 2;
+        const yp = yc;
+        const hMax = rh * 0.94;
+        // one scale for all rows: the size of the orbit follows the real separation a little
+        if (!all._scale || all._scale.W !== this.W || all._scale.H !== this.H) {
+            let K = Infinity;
+            for (const r of all) {
+                if (!r.lobes) {
+                    continue;
+                }
+                const f = (r.q.sep / all[0].q.sep) ** 0.15;
+                const grow = r.kind === "ce" ? 1.15 : 1;
+                K = Math.min(K, (0.94 * (xb - xa)) / (r.lobes.w * grow * f), hMax / (2 * r.lobes.h * grow * f));
+            }
+            all._scale = { W: this.W, H: this.H, K: Number.isFinite(K) ? K : (xb - xa) / 3 };
+        }
+        const K = all._scale.K;
+        const minR = Math.max(1.5, rh * 0.03);
+        // compact objects are drawn at a size that suits the row
+        const kBody = (type) =>
+            type === 19 ? (rh * 0.11) / Math.max(10, 0.035 * this.H) : type === 18 ? (rh * 0.02) / Math.max(3, 0.007 * this.H) : 0.5;
+        const body = (px, py, r, T, type) => {
+            if (isWD(type)) {
+                this._drawWhiteDwarf(px, py, Math.max(2, rh * 0.03), T);
+            } else {
+                this._drawBody(px, py, r, T, type, kBody(type));
+            }
+        };
+
+        if (!row.lobes) {
+            // one star (after a merger), or two stars that fly apart
+            const size = (R) => {
+                const f = clamp((Math.log10(Math.max(R, 1e-9)) - LOG_R_LO) / (LOG_R_HI - LOG_R_LO), 0, 1);
+                return Math.max(minR, rh * 0.36 * f ** 1.4);
+            };
+            if (q.has2 && q.bt === DISRUPTED && q.ty1 === 20) {
+                body(cx, yp, size(q.R2), q.T2, q.ty2); // only star 2 is left
+            } else if (q.has2 && q.bt === DISRUPTED) {
+                const d = 0.3 * (xb - xa);
+                body(cx - d, yp, size(q.R1), q.T1, q.ty1);
+                body(cx + d, yp, size(q.R2), q.T2, q.ty2);
+                ctx.save();
+                ctx.strokeStyle = "rgba(255,255,255,0.45)";
+                ctx.lineWidth = 1.2;
+                for (const sgn of [-1, 1]) {
+                    const xs = cx + sgn * d * 0.35;
+                    const xe = cx + sgn * d * 0.75;
+                    ctx.beginPath();
+                    ctx.moveTo(xs, yp);
+                    ctx.lineTo(xe, yp);
+                    ctx.lineTo(xe - sgn * 5, yp - 4);
+                    ctx.moveTo(xe, yp);
+                    ctx.lineTo(xe - sgn * 5, yp + 4);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            } else {
+                body(cx, yp, size(q.R1), q.T1, q.ty1);
+            }
+            return;
+        }
+
+        const { l1, l2, mu } = row.lobes;
+        const aPx = K * (q.sep / all[0].q.sep) ** 0.15;
+        // centre of the drawing: the middle of the two lobes (not the centre of mass)
+        const xMid = (row.lobes.x0 + row.lobes.x1) / 2;
+        const P = ([u, v]) => ({ x: cx + (u - xMid) * aPx, y: yp + v * aPx });
+        const s1 = P([-mu, 0]);
+        const s2 = P([1 - mu, 0]);
+        const S = aPx / q.sep; // pixels per solar radius
+        const lobe1 = rocheLobe(q.m1 / q.m2) * q.sep;
+        const lobe2 = rocheLobe(q.m2 / q.m1) * q.sep;
+        const vis = (R, lobe) => Math.max(minR, lobe * S * Math.min(R / lobe, 1) ** 0.6);
+        const r1 = vis(q.R1, lobe1);
+        const r2 = vis(q.R2, lobe2);
+        const outline = (pts, grow, c0) => {
+            pts.forEach(([u, v], j) => {
+                const pt = P([c0 + (u - c0) * grow, v * grow]);
+                if (j === 0) {
+                    ctx.moveTo(pt.x, pt.y);
+                } else {
+                    ctx.lineTo(pt.x, pt.y);
+                }
+            });
+            ctx.closePath();
+        };
+        const donorIs1 = q.R1 / lobe1 >= q.R2 / lobe2;
+
+        // common envelope: one cloud around both stars
+        if (row.kind === "ce") {
+            const c = mix(starColor(donorIs1 ? q.T1 : q.T2), [200, 196, 200], 0.3);
+            ctx.save();
+            ctx.beginPath();
+            outline(l1, 1.15, -mu);
+            outline(l2, 1.15, 1 - mu);
+            ctx.fillStyle = css(c, 0.3);
+            ctx.fill("nonzero");
+            ctx.restore();
+        }
+        // the Roche lobes
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = "rgba(255,255,255,0.5)";
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        outline(l1, 1, -mu);
+        ctx.stroke();
+        ctx.beginPath();
+        outline(l2, 1, 1 - mu);
+        ctx.stroke();
+        ctx.restore();
+
+        body(s1.x, s1.y, r1, q.T1, q.ty1);
+        body(s2.x, s2.y, r2, q.T2, q.ty2);
+        if (row.kind === "mt") {
+            const donor = donorIs1 ? { p: s1, r: r1, T: q.T1 } : { p: s2, r: r2, T: q.T2 };
+            const taker = donorIs1 ? { p: s2, r: r2, ty: q.ty2 } : { p: s1, r: r1, ty: q.ty1 };
+            this._drawStream(donor, taker, false);
         }
     }
 
@@ -2487,7 +3189,7 @@ export class BinaryMovie extends StarMovie {
 
         // top: the time with the ruler, and under it what the two stars are doing
         this._drawTimeRuler(s, lang, x, b.yLine, fs, this.W * 0.5);
-        const status = s.unst ? t("transfertype-4") : s.stab ? t("transfertype-1") : t(`bintype-${s.bt}`);
+        const status = this._statusWord(s);
         if (status) {
             const hot = isMT(s.bt) || s.bt === 7 || s.bt === DISRUPTED;
             ctx.textAlign = "left";
@@ -2655,7 +3357,7 @@ export class BinaryMovie extends StarMovie {
         }
 
         // what the two stars are doing
-        const status = s.unst ? t("transfertype-4") : s.stab ? t("transfertype-1") : t(`bintype-${s.bt}`);
+        const status = this._statusWord(s);
         if (status) {
             const hot = isMT(s.bt) || s.bt === 7 || s.bt === DISRUPTED;
             ctx.textAlign = "center";
