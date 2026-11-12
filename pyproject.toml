@@ -1,0 +1,7 @@
+[project]
+name = "sebaweb"
+version = "0.1.0"
+description = "Local server for the SeBa website"
+requires-python = ">=3.10"
+dependencies = []
+
